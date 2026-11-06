@@ -164,7 +164,87 @@ html:not(#_):not(#__) {
     border-radius: var(--r-lg);
     background: var(--surface);
   }
-  #messagelogin { border-top-color: var(--line); }
+  .alert_btnleft a { color: var(--muted); font-weight: 400; }
+  .alert_btnleft a:hover { color: var(--ink); }
+  #messagelogin { margin: 12px 0 0; padding: 12px 0 0; border-top: 1px solid var(--line); }
+  .nfl .f_c:has(#messagelogin) { width: 400px; padding: 20px 24px 8px; }
+  #messagetext:has(+ div + #messagelogin) { margin: 0; padding: 0; min-height: 0; }
+  #messagetext:has(+ div + #messagelogin) p { margin: 0; font-size: 14px; line-height: 1.6; }
+  #messagelogin .flb { height: auto; margin: 0 0 12px; padding: 0; border: 0; background: none; font-size: 15px; line-height: 1.5; }
+  #messagelogin .flb em { float: none; color: var(--ink); font-size: inherit; font-weight: 600; }
+  #messagelogin .flb span:empty { display: none; }
+
+  /* The sign-in page itself gets the same card. */
+  body:not(.pg_index):not(.pg_forumdisplay):not(.pg_viewthread) #ct #main_message:has(> .bm form[id^="loginform_"]) {
+    float: none;
+    margin: 48px auto;
+    max-width: 400px;
+
+    > .bm {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 20px 24px 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      box-shadow: var(--shadow-xs);
+    }
+    .bm_h {
+      display: flex;
+      flex-direction: row-reverse;
+      align-items: baseline;
+      justify-content: space-between;
+      height: auto;
+      margin: 0 0 16px;
+      padding: 0;
+      border: 0 !important;
+      background: none;
+    }
+    .rfm .tipcol:has(a[href*="register"]) { display: none; }
+    .bm_h h3.xs2 { margin: 0; color: var(--ink); font-size: 20px; font-weight: 600; letter-spacing: -.01em; line-height: 1.4; }
+    .bm_h .y { float: none; color: var(--muted); font-size: 12.5px; }
+    .bm_h .y a { color: var(--muted); }
+    .bm_h .y a:last-child { color: var(--ink); font-weight: 500; }
+    .flb { height: auto; margin: 0; padding: 0; border: 0; background: none; }
+    .flb em { float: none; color: var(--ink); font-size: 13px; font-weight: 400; }
+    .flb em:not(:empty) { display: block; margin: 0 0 12px; }
+    .flb span:empty { display: none; }
+    [id^="layer_lostpw"] .flb em { font-size: 15px; font-weight: 600; }
+  }
+
+  /* One sign-in form everywhere: label above the field, the side link beside the label. */
+  :is(form[id^="loginform_"], form[id^="lostpwform_"]) {
+    .c { width: auto; margin: 0; padding: 0; }
+    .rfm { width: auto; margin: 0 0 14px; padding: 0; border: 0; }
+    .rfm table, .rfm tbody { display: block; width: 100%; }
+    .rfm tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; row-gap: 6px; align-items: baseline; }
+    .rfm th {
+      display: block;
+      width: auto;
+      margin: 0;
+      padding: 0;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.5;
+      text-align: left;
+    }
+    .rfm td { display: block; grid-column: 1 / -1; grid-row: 2; width: auto; margin: 0; padding: 0; }
+    .rfm td.tipcol { grid-column: 2; grid-row: 1; font-size: 12.5px; line-height: 1.5; }
+    .rfm td.tipcol a { color: var(--muted); }
+    .rfm td.tipcol a:hover { color: var(--ink); }
+    .rfm td:not(:has(*)):not(.tipcol) { display: none; }
+    .rfm tr:has(.pc, button) th { display: none; }
+    .rfm tr:has(.pc, button) td { grid-row: auto; }
+    .rfm label:has(.pc) { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 13px; }
+    .rfm .pc { margin: 0; }
+    .rfm :is(.px, select) { box-sizing: border-box; width: 100% !important; height: 36px; margin: 0; }
+    .rfm button.pn { display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 100%; height: 36px; margin: 0; }
+    .rfm.mbw { margin-bottom: 12px; }
+    .login_slct a { width: auto !important; color: inherit; font-weight: inherit; }
+    .rq { margin-right: 2px; }
+  }
+  .m_c :is(form[id^="loginform_"], form[id^="lostpwform_"]) { box-sizing: border-box; width: 340px; padding: 4px 16px 4px; }
 
   /* The guide shares the board layout. Title and actions on one line, filters below. */
   .pg_guide {
@@ -326,6 +406,10 @@ html:not(#_):not(#__) {
   .tfm th .rq { float: none; margin-left: 4px; color: var(--accent-text); font-size: 13.5px; }
   .tfm :is(.px, .ps), .tfm select { box-sizing: border-box; width: min(420px, 100%); height: 32px; margin: 0; }
   .tfm .pt, .tfm textarea { box-sizing: border-box; width: 100%; margin: 0; }
+  /* Fields sharing a line keep their natural width, or each would take a row of its own. */
+  .tfm td:is(:has(select ~ select), :has(.px ~ select)) :is(.ps, select) { width: auto; min-width: 88px; }
+  .tfm td.pns .px { width: 80px !important; }
+  .un_selector + #showSelectBox { margin: 0 0 0 10px; line-height: 36px; }
   .tfm .tedt, .tfm .c, .m_c .tfm .tedt { box-sizing: border-box; width: 100%; }
   .tfm .d { margin: 2px 0 0; color: var(--subtle); font-size: 12.5px; line-height: 1.6; }
   .tfm .d a, .tfm .d em, .tfm .d strong { color: var(--accent-text); }
@@ -365,7 +449,7 @@ html:not(#_):not(#__) {
       margin: 0;
       padding: 0;
       border: 0;
-      border-radius: 50%;
+      border-radius: var(--avatar-r);
       background: none;
       overflow: hidden;
     }
@@ -458,6 +542,30 @@ html:not(#_):not(#__) {
     #uhd > .tb { order: 2; overflow-x: auto; scrollbar-width: none; }
   }
 
+  /* Search forms arrive with an extra frame around the form's own card. */
+  .scf { padding-top: 12px; }
+  .scf h2 { margin: 0 0 10px; padding: 0; background: none; color: var(--ink); font-size: 15px; font-weight: 600; }
+  .scf .bm { margin: 0; padding: 0; border: 0; background: none; box-shadow: none; }
+
+  /* Tags */
+  #ct:has(> .bm .taglist) { max-width: var(--page-w); }
+  #ct:has(> .bm .taglist) > h1.mt { margin: 0 0 12px; padding: 0; border: 0; color: var(--ink); font-size: 22px; font-weight: 600; letter-spacing: -.02em; line-height: 32px; }
+  #ct:has(> .bm .taglist) > h1.mt i { display: none; }
+  .bm:has(> .bm_c > .taglist) { margin: 0; padding: 0; border: 0; background: none; box-shadow: none; }
+  .bm:has(> .bm_c > .taglist) > .bm_c { padding: 0; }
+  .bm_c > form.pns:has(+ .taglist) { display: flex; gap: 8px; max-width: 420px; }
+  .taglist { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 0; }
+  .taglist a {
+    padding: 3px 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    color: var(--ink-2);
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+  .taglist a:hover { background: var(--hover); color: var(--ink); }
+
   /* Friends */
   .buddy {
     display: grid;
@@ -495,11 +603,12 @@ html:not(#_):not(#__) {
       margin: 0;
       padding: 0;
       border: 0;
-      border-radius: 50%;
+      border-radius: var(--avatar-r);
       background: none;
       overflow: hidden;
     }
     .avt img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .addbuddy { padding-left: 0; background: none; color: var(--muted); }
     h4, p, .xg1 { grid-column: 2; position: static; float: none; width: auto; height: auto; }
     h4 { margin: 0; padding: 0; font-size: 14px; font-weight: 600; line-height: 1.45; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     h4 a { color: var(--ink); }
@@ -704,7 +813,7 @@ html:not(#_):not(#__) {
     li em { display: block; float: none; width: auto; margin: 0 0 2px; padding: 0; color: var(--muted); font-size: 12.5px; font-style: normal; font-weight: 400; line-height: 1.5; }
     li a { margin-left: 6px; color: var(--muted); font-size: 12.5px; font-weight: 400; }
     li a:hover { color: var(--ink); }
-    li:last-child { grid-column: 1 / -1; }
+    li:has(.xg1) { grid-column: 1 / -1; }
     li .xg1 { display: block; margin: 2px 0 0; color: var(--subtle); font-size: 12.5px; font-weight: 400; }
     li u { text-decoration: none; }
 
@@ -730,7 +839,14 @@ html:not(#_):not(#__) {
   #scform_tb a { border-radius: var(--r-sm); color: var(--muted); }
   #scform_tb a.a { background: var(--active); color: var(--ink); }
 
+  /* Activity feed */
+  .xld .avt img { border-radius: var(--avatar-r); }
+  .ec .hot { background: none; }
+  .ec .hot a { border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); color: var(--muted); }
+  .ec .hot em { color: var(--ink); }
+
   /* Thread lists on profile and favourites pages */
+  .tl tr.th:hover > * { background: none; }
   .tl:not(#threadlist) {
     table { width: 100%; }
     .th, th, td { border: 0; background: none; color: var(--ink-2); }

@@ -1,0 +1,13 @@
+{
+  "name": "s1-lumen",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.18.0",
+  "scripts": {
+    "build": "node tools/build-css.mjs",
+    "package": "node tools/build-css.mjs && node tools/package.mjs"
+  },
+  "devDependencies": {
+    "lightningcss": "^1.33.0"
+  }
+}

@@ -21,6 +21,14 @@
     </div>
   </section>
 
+  <section id="dayPalette">
+    <h2 id="palette-label">日间配色</h2>
+    <div class="segmented" role="radiogroup" aria-labelledby="palette-label">
+      <label><input type="radio" name="dayPalette" value="lumen"><span>Lumen</span></label>
+      <label><input type="radio" name="dayPalette" value="classic"><span>S1 原版</span></label>
+    </div>
+  </section>
+
   <section>
     <div class="row">
       <h2><label for="postSize">帖子字号</label></h2>
@@ -37,10 +45,30 @@
     </div>
   </section>
 
+  <section>
+    <h2 id="avatar-label">头像形状</h2>
+    <div class="segmented" role="radiogroup" aria-labelledby="avatar-label">
+      <label><input type="radio" name="avatarShape" value="circle"><span>圆形</span></label>
+      <label><input type="radio" name="avatarShape" value="rounded"><span>圆角方形</span></label>
+    </div>
+  </section>
+
   <section class="toggles">
     <label class="toggle"><span>页面切换淡入</span><input type="checkbox" name="pageFade"><i></i></label>
+    <label class="toggle"><span>帖子过渡动画</span><input type="checkbox" name="threadMorph"><i></i></label>
     <label class="toggle"><span>相对时间</span><input type="checkbox" name="relativeTime"><i></i></label>
     <label class="toggle"><span>显示签名档</span><input type="checkbox" name="signature"><i></i></label>
+    <label class="toggle"><span>记住阅读位置</span><input type="checkbox" name="resume"><i></i></label>
+    <label class="toggle"><span>默认显示敏感图片</span><input type="checkbox" name="showSensitive"><i></i></label>
+    <label class="toggle" title="登录成功后用同一组账号密码换一个 App 接口凭证，用来查看被屏蔽的内容。关闭时删除已保存的凭证。"><span>登录时获取隐藏内容凭证</span><input type="checkbox" name="appLogin"><i></i></label>
+  </section>
+
+  <section class="blocks">
+    <h2><label for="blockWords">屏蔽关键词</label></h2>
+    <textarea id="blockWords" rows="3" placeholder="一行一个，匹配主题标题和回复内容" spellcheck="false"></textarea>
+    <h2>屏蔽用户</h2>
+    <ul id="blockUsers"></ul>
+    <p class="hint">在帖子里悬停楼层信息，点「屏蔽」添加。</p>
   </section>
 
   <script src="popup.js"></script>

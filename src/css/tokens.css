@@ -1,0 +1,191 @@
+/*
+ * S1 Lumen · design tokens
+ *
+ * Every colour is declared once with light-dark(). The browser resolves it from
+ * `color-scheme`, so switching theme is a single attribute on <html> and "auto"
+ * needs no JavaScript at all. That is what lets the very first frame be correct.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* Day colours on their own, so that a palette can swap them without touching night. */
+  --day-bg: #f7f6f3;
+  --day-bg-soft: #f1f0ec;
+  --day-rail-bg: #f1f0ec;
+  --day-surface: #ffffff;
+  --day-surface-2: #f5f5f5;
+  --day-track: rgb(0 0 0 / .055);
+  --day-tab-on: #ffffff;
+  --day-hover: rgb(0 0 0 / .04);
+  --day-active: rgb(0 0 0 / .07);
+  --day-ink: #0a0a0a;
+  --day-ink-2: #262626;
+  --day-muted: #737373;
+  --day-subtle: #8a8a8a;
+  --day-line: rgb(0 0 0 / .09);
+  --day-line-2: rgb(0 0 0 / .16);
+  --day-ring: #a1a1a1;
+  --day-accent: #171717;
+  --day-accent-hover: #2e2e2e;
+  --day-accent-text: #171717;
+  --day-accent-text-40: rgb(23 23 23 / .4);
+  --day-bg-glass: rgb(247 246 243 / .95);
+  --day-accent-soft: rgb(0 0 0 / .06);
+  --day-on-accent: #fafafa;
+  --day-amber: #404040;
+  --day-amber-soft: rgb(0 0 0 / .06);
+
+  /* The shadcn/ui "neutral" palette, on a soft paper page by day. Hierarchy comes from contrast. */
+  --bg:          light-dark(var(--day-bg), #0a0a0a);
+  --bg-soft:     light-dark(var(--day-bg-soft), #121212);
+  --rail-bg:     light-dark(var(--day-rail-bg), #171717);
+  --surface:     light-dark(var(--day-surface), #171717);
+  --surface-2:   light-dark(var(--day-surface-2), #262626);
+  --track:       light-dark(var(--day-track), #262626);
+  --tab-on:      light-dark(var(--day-tab-on), rgb(255 255 255 / .1));
+  --hover:       light-dark(var(--day-hover), rgb(255 255 255 / .06));
+  --active:      light-dark(var(--day-active), rgb(255 255 255 / .1));
+
+  /* Text, four tiers. */
+  --ink:         light-dark(var(--day-ink), #fafafa);
+  --ink-2:       light-dark(var(--day-ink-2), #e5e5e5);
+  --muted:       light-dark(var(--day-muted), #a1a1a1);
+  --subtle:      light-dark(var(--day-subtle), #858585);
+
+  /* Hairlines: border and input. */
+  --line:        light-dark(var(--day-line), rgb(255 255 255 / .1));
+  --line-2:      light-dark(var(--day-line-2), rgb(255 255 255 / .15));
+  --ring:        light-dark(var(--day-ring), #737373);
+
+  /* Emphasis is inverted contrast: primary is near-black by day, near-white at night. */
+  --accent:      light-dark(var(--day-accent), #e5e5e5);
+  --accent-hover: light-dark(var(--day-accent-hover), #d4d4d4);
+  --accent-text: light-dark(var(--day-accent-text), #fafafa);
+  --accent-text-40: light-dark(var(--day-accent-text-40), rgb(250 250 250 / .4));
+  --bg-glass:    light-dark(var(--day-bg-glass), rgb(10 10 10 / .95));
+  --accent-soft: light-dark(var(--day-accent-soft), #262626);
+  --on-accent:   light-dark(var(--day-on-accent), #171717);
+  --amber:       light-dark(var(--day-amber), #d4d4d4);
+  --amber-soft:  light-dark(var(--day-amber-soft), #262626);
+
+  --shadow-xs:   0 1px 2px rgb(0 0 0 / .05);
+  --shadow-pop:  0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1);
+
+  /* Type. System fonts only: a web font would reintroduce a swap on every load. */
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB",
+             "Segoe UI", "Microsoft YaHei", "Noto Sans SC", "Noto Sans CJK SC", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "PingFang SC", monospace;
+
+  /* User settings; content.js overrides these on <html> before first paint. */
+  --post-size: 16px;
+  --read-w: 1320px;
+
+  /* Layout. */
+  --rail: 224px;
+  --bar-h: 0px;
+  --avatar-r: 50%;
+  --rail-w: 224px; /* the panel itself keeps this width while it slides away */
+  --page-w: 1120px;
+  --gutter: 32px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 10px;
+  --r-xl: 14px;
+
+  /* Motion. */
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --fast: .12s;
+}
+
+:root[data-lumen-theme="light"] { color-scheme: light; }
+:root[data-lumen-theme="dark"]  { color-scheme: dark; }
+:root[data-lumen-width="standard"] { --read-w: 960px; }
+
+/* The forum's own day colours: its page green, table sage, link blue and hover orange. */
+:root[data-lumen-palette="classic"] {
+  --day-bg: #f6f7eb;
+  --day-bg-soft: #eceedd;
+  --day-rail-bg: #d1d9c1;
+  --day-surface: #fbfbf3;
+  --day-surface-2: #e5ead8;
+  --day-track: rgb(2 44 128 / .08);
+  --day-tab-on: #f6f7eb;
+  --day-hover: rgb(2 44 128 / .07);
+  --day-active: rgb(2 44 128 / .13);
+  --day-ink: #111a2e;
+  --day-ink-2: #1c2b4f;
+  --day-muted: #4d5d7a;
+  --day-subtle: #5d6b82;
+  --day-line: rgb(2 44 128 / .18);
+  --day-line-2: rgb(2 44 128 / .32);
+  --day-ring: #7da0cc;
+  --day-accent: #022c80;
+  --day-accent-hover: #0a3fa6;
+  --day-accent-text: #022c80;
+  --day-accent-text-40: rgb(2 44 128 / .4);
+  --day-bg-glass: rgb(246 247 235 / .95);
+  --day-accent-soft: rgb(2 44 128 / .1);
+  --day-on-accent: #f6f7eb;
+  --day-amber: #c8502f;
+  --day-amber-soft: rgb(242 108 79 / .14);
+}
+
+/* Hidden rail: the page takes the full width and leaves room for the toggle. */
+:root[data-lumen-avatar="rounded"] { --avatar-r: 22%; }
+
+@media (min-width: 961px) {
+  :root[data-lumen-rail="hidden"] { --rail: 0px; --gutter: 56px; --toggle-x: 14px; }
+}
+
+@media (max-width: 960px) {
+  :root { --rail: 0px; --gutter: 16px; --bar-h: 52px; }
+}
+
+@media (max-width: 640px) {
+  :root { --bar-h: 92px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
+/*
+ * The fade is a plain animation on the new page's content, not a view transition: those
+ * snapshot the old page and suspend the new one, which is when clicks went missing.
+ * Only trips in and out of a thread and between its pages are transitions.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-lumen-fade]:not([data-lumen-morph]) #wp { animation: lumen-page-in 120ms ease-out; }
+  :root[data-lumen-trip] #wp { animation: lumen-page-in 160ms ease-out; }
+
+  :root[data-lumen-morph] #hd { view-transition-name: lumen-rail; }
+  :root[data-lumen-morph] .lumen-rail-toggle { view-transition-name: lumen-rail-toggle; }
+
+  :root::view-transition { pointer-events: none; }
+  /* One after the other: two pages of text fading through each other read as a mess. */
+  :root::view-transition-old(root) { animation-duration: 90ms; animation-timing-function: ease-out; }
+  :root::view-transition-new(root) { animation-duration: 150ms; animation-delay: 70ms; animation-timing-function: ease-out; }
+  :root::view-transition-group(lumen-title) {
+    animation-duration: 240ms;
+    animation-timing-function: cubic-bezier(.2, .7, .2, 1);
+  }
+  :root::view-transition-old(lumen-title),
+  :root::view-transition-new(lumen-title) {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: left center;
+    animation-duration: 240ms;
+  }
+  :root::view-transition-group(lumen-rail),
+  :root::view-transition-group(lumen-rail-toggle) { animation: none; }
+  :root::view-transition-old(lumen-rail),
+  :root::view-transition-old(lumen-rail-toggle) { display: none; }
+  :root::view-transition-new(lumen-rail),
+  :root::view-transition-new(lumen-rail-toggle) { animation: none; }
+}
+
+@keyframes lumen-page-in {
+  from { opacity: 0; }
+}

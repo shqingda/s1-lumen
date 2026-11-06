@@ -90,7 +90,6 @@ html:not(#_):not(#__) {
     border: 0;
     border-right: 1px solid var(--line);
     background: var(--rail-bg) none;
-    view-transition-name: lumen-rail;
   }
   #hd > .wp, #hd .hdc, #nv_ph {
     display: contents;
@@ -322,7 +321,7 @@ html:not(#_):not(#__) {
     box-sizing: border-box;
     width: 32px;
     height: 32px;
-    border-radius: 50%;
+    border-radius: var(--avatar-r);
     background: var(--surface-2);
     object-fit: cover;
   }
@@ -464,7 +463,6 @@ html:not(#_):not(#__) {
     background: none;
     color: var(--muted);
     cursor: pointer;
-    view-transition-name: lumen-rail-toggle;
     transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
   }
   .lumen-rail-toggle:hover { background: var(--active); color: var(--ink); }

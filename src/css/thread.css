@@ -93,6 +93,36 @@ html:not(#_):not(#__) {
       font-variant-numeric: tabular-nums;
     }
     #postlist > table:first-child .pls .hm .pipe { margin: 0 10px; }
+    /* From page 2 on, Discuz swaps the view counts for the thread starter. */
+    #tath {
+      grid-column: 1;
+      grid-row: 2;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      float: none;
+      min-width: 0;
+      margin: 6px 0 0;
+      padding: 0;
+      color: var(--subtle);
+      font-size: 13px;
+      line-height: 20px;
+    }
+    #tath::after { display: none; }
+    #tath a { color: var(--muted); }
+    #tath a:hover { color: var(--ink); }
+    #tath a:has(img) { flex: none; }
+    #tath img {
+      display: block;
+      width: 20px;
+      height: 20px;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      border-radius: var(--avatar-r);
+      background: var(--hover);
+      object-fit: cover;
+    }
 
     h1.ts {
       grid-column: 1 / -1;
@@ -132,7 +162,7 @@ html:not(#_):not(#__) {
 
     table.plhin {
       display: grid;
-      grid-template-columns: 40px auto minmax(0, 1fr) auto;
+      grid-template-columns: 52px auto minmax(0, 1fr) auto;
       column-gap: 0;
       width: auto;
       padding: 16px 0 18px;
@@ -158,17 +188,17 @@ html:not(#_):not(#__) {
     }
     .favatar > *:not(.pi):not(:has(.avatar)) { display: none; }
     .favatar > :has(.avatar) { grid-column: 1; grid-row: 1 / span 2; }
-    .favatar .avatar { margin: 0; padding: 0; }
-    .favatar .avatar a { display: block; width: 32px; height: 32px; }
+    .favatar .avatar { width: 40px; margin: 0; padding: 0; }
+    .favatar .avatar a { display: block; width: 40px; height: 40px; }
     .favatar .avatar img, .favatar .avtm img {
       display: block;
-      width: 32px;
-      height: 32px;
+      width: 40px;
+      height: 40px;
       max-width: none;
       margin: 0;
       padding: 0;
       border: 0;
-      border-radius: 50%;
+      border-radius: var(--avatar-r);
       background: var(--surface-2);
       object-fit: cover;
       box-shadow: none;
@@ -179,11 +209,14 @@ html:not(#_):not(#__) {
     .favatar > .bui {
       position: absolute;
       z-index: 30;
-      top: 54px;
+      top: 62px;
       left: 0;
-      display: block !important;
+      display: grid !important;
+      grid-template-columns: 72px minmax(0, 1fr);
+      column-gap: 12px;
+      align-items: center;
       box-sizing: border-box;
-      width: 264px !important;
+      width: 320px !important;
       margin: 0 !important;
       padding: 12px 14px;
       font-size: 12.5px;
@@ -203,20 +236,20 @@ html:not(#_):not(#__) {
     .favatar > .bui:hover { transition-delay: 0s; }
 
     /* Banned authors: Discuz prints the words where the picture would be. */
-    .favatar .avatar:not(:has(img)) {
+    .favatar .avatar:not(:has(img)), .favatar > .bui .m:not(:has(img)) {
       position: relative;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      border-radius: var(--avatar-r);
       background: var(--surface-2);
       box-shadow: inset 0 0 0 1px var(--line);
       font-size: 0;
       overflow: hidden;
     }
-    .favatar .avatar:not(:has(img))::before {
+    .favatar .avatar:not(:has(img))::before, .favatar > .bui .m:not(:has(img))::before {
       content: "";
       position: absolute;
-      inset: 8px;
+      inset: 25%;
       background: var(--subtle);
       mask: var(--ic-ban) center / contain no-repeat;
     }
@@ -243,8 +276,20 @@ html:not(#_):not(#__) {
     }
     .locked em { color: inherit; font-style: normal; }
     .attach_nopermission img { filter: grayscale(1); opacity: .6; }
-    .favatar > .bui .m { display: none; }
-    .favatar > .bui .i { float: none; width: auto; }
+    .favatar > .bui .m { float: none; width: 72px; height: 72px; margin: 0; padding: 0; }
+    .favatar > .bui .m:not(:has(img)) { width: 72px; height: 72px; }
+    .favatar > .bui .m :is(div, a) { display: block; width: 72px; height: 72px; margin: 0; padding: 0; }
+    .favatar > .bui .m img {
+      display: block;
+      width: 72px;
+      height: 72px;
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border-radius: var(--avatar-r);
+      object-fit: cover;
+    }
+    .favatar > .bui .i { float: none; width: auto; min-width: 0; }
     .favatar > .bui .i > div:first-child { display: flex; align-items: baseline; gap: 8px; }
     .favatar > .bui :is(p, em, strong) { margin: 0; padding: 0; }
     .favatar > .bui .i a { display: inline; width: auto; height: auto; margin: 0; padding: 0; }
@@ -267,7 +312,7 @@ html:not(#_):not(#__) {
       gap: 6px;
       margin: 0;
       padding: 0;
-      line-height: 32px;
+      line-height: 40px;
     }
     .favatar .authi a {
       color: var(--ink);
@@ -302,7 +347,7 @@ html:not(#_):not(#__) {
       align-self: center;
       margin: 0;
       font-weight: 400;
-      line-height: 32px;
+      line-height: 40px;
     }
     td.plc > .pi > strong a {
       float: none;
@@ -338,12 +383,12 @@ html:not(#_):not(#__) {
       display: flex;
       align-items: center;
       gap: 10px;
-      height: 32px;
+      height: 40px;
       margin: 0;
       padding: 0;
       color: var(--subtle);
       font-size: 12.5px;
-      line-height: 32px;
+      line-height: 40px;
       white-space: nowrap;
     }
     .pti .authi .pipe, .pti .authi .authicn, .pti .authi .none { display: none; }
@@ -389,7 +434,7 @@ html:not(#_):not(#__) {
     .t_f a {
       color: var(--accent-text);
       text-decoration: underline;
-      text-decoration-color: color-mix(in srgb, var(--accent-text) 40%, transparent);
+      text-decoration-color: var(--accent-text-40);
       text-decoration-thickness: 1px;
       text-underline-offset: 3px;
     }
@@ -448,6 +493,11 @@ html:not(#_):not(#__) {
     .quote a font { color: var(--subtle); }
     .quote a:hover, .quote a:hover font { color: var(--accent-text); }
 
+    /* The whole quote leads to the post it came from. */
+    .t_f .quote:has(a[href*="goto=findpost"]) { cursor: pointer; transition: background var(--fast); }
+    .t_f .quote:has(a[href*="goto=findpost"]):hover { background: var(--active) none; }
+    .t_f .quote:has(a[href*="goto=findpost"]):hover a font { color: var(--accent-text); }
+
     /* Code */
     .blockcode {
       margin: 10px 0;
@@ -472,7 +522,10 @@ html:not(#_):not(#__) {
 
     /* Tables written in posts */
     .t_table { max-width: 100%; margin: 8px 0; border: 1px solid var(--line-2); border-collapse: collapse; }
-    .t_table td { padding: 6px 10px; border: 1px solid var(--line); background: none; font-size: .92em; }
+    table.plhin .t_table td { padding: 6px 10px; border: 1px solid var(--line); background: none; font-size: .92em; }
+
+    .showhide { margin: 10px 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: none; }
+    .showhide h4 { margin: 0 0 6px; padding: 0; color: var(--subtle); font-size: 12.5px; font-weight: 550; line-height: 1.5; text-align: left; }
 
     /* Attachments, ratings, comments */
     .pattl, .tattl, .attach_nopermission {
@@ -484,6 +537,9 @@ html:not(#_):not(#__) {
       color: var(--muted);
       font-size: 13px;
     }
+    /* Discuz sizes the box at 100% and then adds padding; the single frame is the outer one. */
+    .pattl { box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 10px 24px; width: auto; max-width: 100%; }
+    .pattl .tattl { float: none; width: auto; max-width: 100%; margin: 0; padding: 0; border: 0; }
     .attach_nopermission h3, .attach_nopermission strong { color: var(--ink-2); font-size: 13px; }
     .attach_nopermission { position: relative; width: auto; background-image: none; }
     .attach_nopermission div { padding: 2px 0 2px 44px; border: 0; background-position: 0 50%; background-size: 32px; }
@@ -521,7 +577,7 @@ html:not(#_):not(#__) {
       width: 18px;
       height: 18px;
       margin: 0 4px 0 0;
-      border-radius: 50%;
+      border-radius: var(--avatar-r);
       vertical-align: -4px;
     }
     .ratl_l td { border: 0; }
@@ -671,12 +727,78 @@ html:not(#_):not(#__) {
   /* White or page-coloured text is a spoiler by convention, so it stays one. */
   .t_f [data-lumen-spoiler] {
     border-radius: 3px;
-    background: var(--active);
+    background: var(--active) !important;
     color: transparent !important;
     transition: color var(--fast) var(--ease), background var(--fast) var(--ease);
   }
-  .t_f [data-lumen-spoiler]:hover { background: var(--hover); color: var(--ink) !important; }
-  .t_f [data-lumen-spoiler]::selection { color: var(--ink); }
+  .t_f [data-lumen-spoiler] :is(a, font, span, strong, em) { color: inherit !important; }
+  .t_f [data-lumen-spoiler] * { background: none !important; }
+  .t_f [data-lumen-spoiler] a { border-color: transparent; text-decoration-color: transparent; }
+  .t_f [data-lumen-spoiler]:hover a { text-decoration-color: currentColor; }
+  .t_f [data-lumen-spoiler]:hover { background: var(--hover) !important; color: var(--ink) !important; }
+  .t_f [data-lumen-spoiler]::selection, .t_f [data-lumen-spoiler] *::selection { color: var(--ink); }
+
+  /* The pill: 接着读 and 返回, centred on the reading column. */
+  .lumen-pill {
+    position: fixed;
+    bottom: 24px;
+    left: calc(var(--rail) + (100vw - var(--rail)) / 2);
+    z-index: 35;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 36px;
+    padding: 0 4px 0 2px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+    box-shadow: var(--shadow-pop);
+    color: var(--ink);
+    font-size: 13px;
+    transform: translateX(-50%);
+    animation: lumen-pill-in 200ms var(--ease) both;
+  }
+  .lumen-pill.is-leaving { pointer-events: none; animation: lumen-pill-out 160ms var(--ease) both; }
+  .lumen-pill button { margin: 0; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; font: inherit; }
+  .lumen-pill-go {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 10px 0 9px !important;
+    border-radius: 15px;
+    font-weight: 500 !important;
+    white-space: nowrap;
+    transition: background var(--fast) var(--ease);
+  }
+  .lumen-pill-go::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+    background: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14M19 12l-7 7-7-7'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  .lumen-pill-back .lumen-pill-go::before { mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 20v-7a4 4 0 0 0-4-4H4M9 14 4 9l5-5'/%3E%3C/svg%3E"); }
+  .lumen-pill-go:hover { background: var(--hover); }
+  .lumen-pill-close {
+    position: relative;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    color: var(--subtle) !important;
+    transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+  }
+  .lumen-pill-close::before {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    background: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6 6 18M6 6l12 12'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  .lumen-pill-close:hover { background: var(--hover); color: var(--ink) !important; }
+
+  /* The floor a jump landed on. A halo, so nothing moves. */
+  .lumen-flash { border-radius: var(--r-md); animation: lumen-flash 1500ms var(--ease) both; }
 
   /* Image zoom viewer */
   .zoominner { background: var(--surface); border-radius: var(--r-lg); }
@@ -686,4 +808,15 @@ html:not(#_):not(#__) {
 @keyframes lumen-bar-title {
   from { opacity: 0; transform: translateY(5px); }
   to   { opacity: 1; transform: none; }
+}
+
+@keyframes lumen-pill-in {
+  from { opacity: 0; transform: translate(-50%, 8px) scale(.97); }
+}
+@keyframes lumen-pill-out {
+  to { opacity: 0; transform: translate(-50%, 6px) scale(.98); }
+}
+@keyframes lumen-flash {
+  0%, 35% { background: var(--active); box-shadow: 0 0 0 10px var(--active); }
+  100% { background: transparent; box-shadow: 0 0 0 10px transparent; }
 }

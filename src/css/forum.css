@@ -240,16 +240,20 @@ html:not(#_):not(#__) {
       column-gap: 14px;
     }
     #threadlist .th th { display: block; width: auto; height: auto; padding: 0; }
+    /* Same box as the filter tabs, so every label shares one baseline and size. */
     #threadlist .th td {
       display: block;
       width: auto;
+      height: 26px;
       padding: 0;
       border: 0;
-      color: var(--subtle);
-      font-size: 12px;
+      color: var(--muted);
+      font-size: 12.5px;
       font-weight: 500;
+      line-height: 26px;
       white-space: nowrap;
     }
+    #threadlist .th tr:hover :is(th, td) { background: none; }
     #threadlist .th td a { color: inherit; }
     #threadlist .th td.num, #threadlist .th td:last-child { text-align: right; }
     #threadlist .tf {
@@ -283,8 +287,9 @@ html:not(#_):not(#__) {
       margin-left: auto;
       padding: 0 4px 0 0;
       background-image: none;
-      color: var(--subtle);
-      font-size: 12px;
+      color: var(--muted);
+      font-size: 12.5px;
+      font-weight: 500;
       cursor: pointer;
     }
     #atarget::before { color: inherit; }
@@ -362,6 +367,26 @@ html:not(#_):not(#__) {
     /* Moderator highlight colours were picked for the old beige background. */
     a.xst[style*="color"] { color: var(--accent-text) !important; }
     a.xst[style*="bold"] { font-weight: 600 !important; }
+
+    /* Unread replies since the last visit; opens at the floor where reading stopped. */
+    #threadlisttableid th > .lumen-resume {
+      position: relative;
+      z-index: 1;
+      order: -1;
+      flex: none;
+      min-width: 20px;
+      padding: 0 6px;
+      border-radius: var(--r-sm);
+      background: var(--hover);
+      color: var(--ink-2);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 550;
+      line-height: 20px;
+      text-align: center;
+      transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+    }
+    #threadlisttableid th > .lumen-resume:hover { background: var(--accent); color: var(--on-accent); }
 
     #threadlisttableid th > .xg1 { color: var(--subtle); font-size: 12px; font-weight: 400; }
     #threadlisttableid th > .xg1 * { font-size: inherit; font-weight: inherit !important; }
@@ -530,7 +555,7 @@ html:not(#_):not(#__) {
     }
     @media (max-width: 640px) {
       #threadlisttableid > tbody > tr, #threadlist .th tr { grid-template-columns: minmax(0, 1fr) 48px; }
-      #threadlisttableid td.by:last-of-type, #threadlist .th td:last-child, #threadlist .tf label { display: none; }
+      #threadlisttableid td.by:last-of-type, #threadlist .th td:last-child, #atarget { display: none; }
     }
   }
 
@@ -549,9 +574,7 @@ html:not(#_):not(#__) {
     padding: 9px var(--bleed);
     border: 0;
     border-bottom: 1px solid transparent;
-    background: color-mix(in srgb, var(--bg) 84%, transparent);
-    -webkit-backdrop-filter: blur(16px) saturate(1.4);
-    backdrop-filter: blur(16px) saturate(1.4);
+    background: var(--bg-glass);
   }
   #pgt::after { display: none; }
   #pgt .pgb { order: 1; float: none; margin: 0; }
