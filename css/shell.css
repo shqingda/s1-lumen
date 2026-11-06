@@ -1,0 +1,706 @@
+/*
+ * S1 Lumen · shell: the left rail, the page frame, and what gets removed
+ *
+ * The original header (logo row, login, nav bar, search bar) is rearranged with
+ * `display: contents` into one fixed rail. The DOM stays where Discuz expects it,
+ * so hover menus, search and login all keep working.
+ */
+
+:root {
+  --logo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cdefs%3E%3CradialGradient id='b' cx='.42' cy='.3' r='.78'%3E%3Cstop offset='0' stop-color='%23555'/%3E%3Cstop offset='.45' stop-color='%23191919'/%3E%3Cstop offset='1' stop-color='%23000'/%3E%3C/radialGradient%3E%3CradialGradient id='w' cx='.4' cy='.35' r='.8'%3E%3Cstop offset='0' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23d2d2d2'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='24' cy='24' r='22.500' fill='url(%23b)' stroke='%23fff' stroke-opacity='.16'/%3E%3Cellipse cx='22.500' cy='9.500' rx='2.800' ry='3.800' fill='%23fff' opacity='.8'/%3E%3Ccircle cx='27.500' cy='28.500' r='13' fill='url(%23w)' stroke='%23999' stroke-width='1.200'/%3E%3Cpath d='M29.600 20.500v16.400h-4.500V26l-3.400 1.300v-3.600l5.900-3.200z'/%3E%3C/svg%3E");
+  --ic-home: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='7.5' height='7.5' rx='1.5'/%3E%3Crect x='13.5' y='3' width='7.5' height='7.5' rx='1.5'/%3E%3Crect x='3' y='13.5' width='7.5' height='7.5' rx='1.5'/%3E%3Crect x='13.5' y='13.5' width='7.5' height='7.5' rx='1.5'/%3E%3C/svg%3E");
+  --ic-guixu: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3C/svg%3E");
+  --ic-mic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='2.5' width='6' height='12' rx='3'/%3E%3Cpath d='M5 11a7 7 0 0 0 14 0M12 18v3.5'/%3E%3C/svg%3E");
+  --ic-tv: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.5' y='7' width='19' height='14' rx='2.5'/%3E%3Cpath d='m17 2.5-5 4.5-5-4.5'/%3E%3C/svg%3E");
+  --ic-game: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.5' y='6' width='19' height='12' rx='5'/%3E%3Cpath d='M6.5 12h4M8.5 10v4M15.5 13h.01M18 11h.01'/%3E%3C/svg%3E");
+  --ic-phone: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='6' y='2.5' width='12' height='19' rx='2.5'/%3E%3Cpath d='M11 18h2'/%3E%3C/svg%3E");
+  --ic-chat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H8l-4.5 4V5a2 2 0 0 1 2-2H19a2 2 0 0 1 2 2z'/%3E%3C/svg%3E");
+  --ic-box: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 8 12 3 3 8v8l9 5 9-5z'/%3E%3Cpath d='m3 8 9 5 9-5M12 13v8'/%3E%3C/svg%3E");
+  --ic-film: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2.5'/%3E%3Cpath d='M8 3v18M16 3v18M3 8h5M3 16h5M16 8h5M16 16h5M3 12h18'/%3E%3C/svg%3E");
+  --ic-monitor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.5' y='3.5' width='19' height='13.5' rx='2.5'/%3E%3Cpath d='M8 21h8M12 17v4'/%3E%3C/svg%3E");
+  --ic-fish: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 12s4-6 10.5-6c3 0 5 1.5 6 3l2.5-2v10L19 15c-1 1.500-3 3-6 3-6.500 0-10.500-6-10.500-6z'/%3E%3Cpath d='M8 11h.01'/%3E%3C/svg%3E");
+  --ic-post: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2.5H6.500a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8z'/%3E%3Cpath d='M14 2.500V8h5.500M8.500 13h7M8.500 17h7'/%3E%3C/svg%3E");
+  --ic-star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m12 3 2.700 5.800 6.300.800-4.600 4.300 1.200 6.300L12 17l-5.600 3.200 1.200-6.300L3 9.600l6.300-.800z'/%3E%3C/svg%3E");
+  --ic-users: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='8' r='4'/%3E%3Cpath d='M2.500 21a6.500 6.500 0 0 1 13 0M16 4.300a4 4 0 0 1 0 7.400M21.500 21a6.500 6.500 0 0 0-4-6'/%3E%3C/svg%3E");
+  --ic-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20.500 20.500-4.300-4.300'/%3E%3C/svg%3E");
+  --ic-bell: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 8.500a6 6 0 1 1 12 0c0 6.500 2.500 8.500 2.500 8.500h-17S6 15 6 8.500'/%3E%3Cpath d='M10 20.500a2.200 2.200 0 0 0 4 0'/%3E%3C/svg%3E");
+  --ic-mail: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.500' y='4.500' width='19' height='15' rx='2.500'/%3E%3Cpath d='m21.500 7.500-9.500 6-9.500-6'/%3E%3C/svg%3E");
+  --ic-gear: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6h9M19 6h1M4 12h1M11 12h9M4 18h6M16 18h4'/%3E%3Ccircle cx='16' cy='6' r='2.500'/%3E%3Ccircle cx='8' cy='12' r='2.500'/%3E%3Ccircle cx='13' cy='18' r='2.500'/%3E%3C/svg%3E");
+  --ic-exit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21H5.500a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2H9'/%3E%3Cpath d='m16 17 5-5-5-5M21 12H9'/%3E%3C/svg%3E");
+  --ic-sun: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2.500v2M12 19.500v2M5.300 5.300l1.400 1.400M17.300 17.300l1.400 1.400M2.500 12h2M19.500 12h2M5.300 18.700l1.400-1.400M17.300 6.700l1.400-1.400'/%3E%3C/svg%3E");
+  --ic-moon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.500 13.500A8.500 8.500 0 1 1 10.500 3.500a6.800 6.800 0 0 0 10 10z'/%3E%3C/svg%3E");
+  --ic-up: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 15 6-6 6 6'/%3E%3C/svg%3E");
+  --ic-back: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m15 18-6-6 6-6'/%3E%3C/svg%3E");
+  --ic-link: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 14a4.500 4.500 0 0 0 6.400 0l3-3a4.500 4.500 0 0 0-6.400-6.400l-1 1'/%3E%3Cpath d='M14 10a4.500 4.500 0 0 0-6.400 0l-3 3a4.500 4.500 0 0 0 6.400 6.400l1-1'/%3E%3C/svg%3E");
+  --ic-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3.500' width='18' height='17' rx='2.500'/%3E%3Ccircle cx='9' cy='9.500' r='1.500'/%3E%3Cpath d='m21 15.500-4.500-4.500L6 20.500'/%3E%3C/svg%3E");
+  --ic-pin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 16.500V22M8.500 3h7l-.8 6.500 3.300 3.500v3.500H6V13l3.300-3.500z'/%3E%3C/svg%3E");
+  --ic-poll: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 20V11M12 20V4M19 20v-6'/%3E%3C/svg%3E");
+  --ic-bold: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 5h6.5a3.5 3.5 0 0 1 0 7H7zM7 12h7.5a3.5 3.5 0 0 1 0 7H7z'/%3E%3C/svg%3E");
+  --ic-color: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 20 12 4l6 16M8.2 14.5h7.6'/%3E%3C/svg%3E");
+  --ic-quote: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 7H6a2 2 0 0 0-2 2v3h5zM9 12c0 3-1.5 4.5-4 5M20 7h-3a2 2 0 0 0-2 2v3h5zM20 12c0 3-1.5 4.5-4 5'/%3E%3C/svg%3E");
+  --ic-code: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m8 8-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14'/%3E%3C/svg%3E");
+  --ic-smile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='M8.5 14.2c.9 1.3 2.1 2 3.5 2s2.6-.7 3.5-2M9.2 9.6v.2M14.8 9.6v.2'/%3E%3C/svg%3E");
+  --ic-x: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 6l12 12M18 6 6 18'/%3E%3C/svg%3E");
+  --ic-updown: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m8 15 4 4 4-4M8 9l4-4 4 4'/%3E%3C/svg%3E");
+  --ic-user: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='3.8'/%3E%3Cpath d='M4.8 20c1-3.6 3.8-5.4 7.2-5.4s6.200 1.800 7.200 5.400'/%3E%3C/svg%3E");
+  --ic-panel: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='16' rx='3'/%3E%3Cpath d='M9.500 4v16'/%3E%3C/svg%3E");
+  --ic-contrast: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 3v18' /%3E%3Cpath d='M12 8h6M12 12h7M12 16h6'/%3E%3C/svg%3E");
+  --ic-ban: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='m5.7 5.7 12.6 12.6'/%3E%3C/svg%3E");
+  --ic-user-plus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M19 8v6M22 11h-6'/%3E%3C/svg%3E");
+  --ic-lock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.500' y='10.500' width='15' height='10.500' rx='2.500'/%3E%3Cpath d='M8 10.500V7a4 4 0 0 1 8 0v3.500'/%3E%3C/svg%3E");
+}
+
+html:not(#_):not(#__) {
+
+  /* ---- Removed outright ---------------------------------------------------- */
+
+  #toptb,
+  #mu,
+  #qmenu,
+  #qmenu_menu,
+  #plugin_menu,
+  #nv .h_pop,
+  .h_pop[id^="mn_"],
+  #mn_userapp_menu,
+  #nv a[href^="plugin.php?id=liangzai_mqycode"],
+  #mn_Nf7af,
+  #frt,
+  #flk .xs0,
+  #flk > p > a[style],
+  #flk > p > .pipe,
+  #flk > p > a[href="forum.php?showmobile=yes"],
+  .a_h, .a_mu, .a_fl, .a_fr, .a_cn, .a_pt, .a_pb, .a_f, .a_t,
+  #diynavtop, #diy1, #diy3, #diy4, #diy_chart, #diyfastposttop,
+  .wp.mtn:has(> .area:empty),
+  .bm.lk,
+  ul.p_pop.h_pop { display: none !important; }
+
+  /* ---- Rail --------------------------------------------------------------- */
+
+  #hd {
+    position: fixed;
+    z-index: 40;
+    inset: 0 auto 0 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    width: var(--rail-w);
+    margin: 0;
+    padding: 12px 10px 8px;
+    border: 0;
+    border-right: 1px solid var(--line);
+    background: var(--rail-bg) none;
+    view-transition-name: lumen-rail;
+  }
+  #hd > .wp, #hd .hdc, #nv_ph {
+    display: contents;
+    width: auto;
+    height: auto;
+    min-height: 0;
+  }
+
+  #hd h2 {
+    order: 1;
+    float: none;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 2px 8px 12px;
+  }
+  #hd h2 a {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: .13em;
+    line-height: 1;
+  }
+  #hd h2 a::before {
+    content: "";
+    width: 26px;
+    height: 26px;
+    background: var(--logo) center / contain no-repeat;
+  }
+  #hd h2 a::after { content: "STAGE1"; }
+  #boardlogo { display: none; }
+
+  /* Search */
+  #scbar {
+    order: 2;
+    position: relative;
+    height: auto;
+    margin: 0 0 12px;
+    padding: 0;
+    border: 0;
+    background: none;
+    overflow: visible;
+  }
+  #scbar_form { display: block; margin: 0; }
+  #scbar table, #scbar tbody { display: block; }
+  #scbar tr { display: block; position: relative; }
+  #scbar td { display: none; padding: 0; background: none; }
+  #scbar td.scbar_txt_td { display: block; width: auto; }
+  #scbar::before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    top: 10px;
+    left: 10px;
+    width: 14px;
+    height: 14px;
+    background: var(--subtle);
+    mask: var(--ic-search) center / contain no-repeat;
+    pointer-events: none;
+  }
+  #scbar::after {
+    content: "⌘K";
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 1px 5px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--subtle);
+    font-size: 10.5px;
+    line-height: 1.4;
+    pointer-events: none;
+  }
+  #scbar:focus-within::after { opacity: 0; }
+  #scbar_txt {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    height: 34px;
+    margin: 0;
+    padding: 0 40px 0 31px;
+    border: 1px solid transparent;
+    border-radius: var(--r-md);
+    background: var(--hover);
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 34px;
+    outline: 0;
+    transition: background var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+  }
+  #scbar_txt:focus {
+    border-color: var(--line-2);
+    background: var(--surface);
+    box-shadow: none;
+    color: var(--ink);
+  }
+
+  /* Boards */
+  #nv {
+    order: 3;
+    flex: 1 1 0;
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    width: auto !important;
+    min-height: 0;
+    height: auto;
+    margin: 0 -4px;
+    padding: 0 4px;
+    border: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    background: none;
+    opacity: 1 !important;
+  }
+  #nv ul {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    float: none;
+    margin: 0;
+    padding: 0;
+  }
+  #nv li {
+    float: none;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+  #nv li a {
+    float: none;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: auto;
+    height: 32px;
+    margin: 0;
+    padding: 0 9px;
+    border-radius: var(--r-md);
+    background: none;
+    color: var(--muted);
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 32px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+  }
+  #nv li a::before {
+    content: "";
+    flex: none;
+    width: 16px;
+    height: 16px;
+    background: currentColor;
+    opacity: .85;
+    mask: var(--ic, var(--ic-chat)) center / contain no-repeat;
+  }
+  #nv li a:hover { background: var(--hover); color: var(--ink); }
+  #nv li.a > a {
+    background: var(--active);
+    color: var(--ink);
+  }
+  #nv li.a > a::before { opacity: 1; }
+
+  #nv a[data-icon="home"]       { --ic: var(--ic-home); }
+  #nv a[href^="forum-157-"]     { --ic: var(--ic-guixu); }
+  #nv a[href^="forum-151-"]     { --ic: var(--ic-mic); }
+  #nv a[href^="forum-6-"]       { --ic: var(--ic-tv); }
+  #nv a[href^="forum-4-"]       { --ic: var(--ic-game); }
+  #nv a[href^="forum-135-"]     { --ic: var(--ic-phone); }
+  #nv a[href^="forum-77-"]      { --ic: var(--ic-chat); }
+  #nv a[href^="forum-136-"]     { --ic: var(--ic-box); }
+  #nv a[href^="forum-48-"]      { --ic: var(--ic-film); }
+  #nv a[href^="forum-51-"]      { --ic: var(--ic-monitor); }
+  #nv a[href^="muanyun"]        { --ic: var(--ic-fish); }
+  #nv a[data-icon="post"]       { --ic: var(--ic-post); }
+  #nv a[data-icon="star"]       { --ic: var(--ic-star); }
+  #nv a[data-icon="users"]      { --ic: var(--ic-users); }
+
+  #nv li.lumen-sub a {
+    height: 28px;
+    padding-left: 35px;
+    font-size: 12.5px;
+    line-height: 28px;
+  }
+  #nv li.lumen-sub a::before { display: none; }
+
+  .lumen-section { margin-top: 14px; }
+  .lumen-label {
+    padding: 0 9px 4px;
+    color: var(--subtle);
+    font-size: 11.5px;
+    font-weight: 550;
+    letter-spacing: .02em;
+  }
+
+  #nv a[data-icon="mail"] { --ic: var(--ic-mail); }
+  #nv a[data-icon="bell"] { --ic: var(--ic-bell); }
+  .lumen-badge {
+    box-sizing: border-box;
+    min-width: 18px;
+    height: 18px;
+    margin-left: auto;
+    padding: 0 5px;
+    border-radius: var(--r-sm);
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 11px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 18px;
+    text-align: center;
+  }
+  .lumen-badge:empty { min-width: 8px; width: 8px; height: 8px; margin-right: 4px; padding: 0; border-radius: 50%; }
+
+  /* Account: one row in the rail, the rest opens above it. */
+  #um { display: none; }
+  .lumen-user { order: 9; position: relative; margin: 8px 0 0; }
+  .lumen-avatar {
+    flex: none;
+    box-sizing: border-box;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    object-fit: cover;
+  }
+  .lumen-user-text { display: grid; flex: 1; min-width: 0; text-align: left; }
+  .lumen-user-text strong, .lumen-user-text small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .lumen-user-text strong { color: var(--ink); font-size: 13px; font-weight: 500; line-height: 18px; }
+  .lumen-user-text small { color: var(--muted); font-size: 12px; font-weight: 400; line-height: 16px; }
+
+  .lumen-user-btn {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 48px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: var(--r-md);
+    background: none;
+    cursor: pointer;
+    transition: background var(--fast) var(--ease);
+  }
+  .lumen-user-btn:hover, .lumen-user-btn[aria-expanded="true"] { background: var(--active); }
+  .lumen-user-btn::after {
+    content: "";
+    flex: none;
+    width: 16px;
+    height: 16px;
+    background: var(--muted);
+    mask: var(--ic-updown) center / contain no-repeat;
+  }
+
+  .lumen-menu {
+    position: absolute;
+    z-index: 2;
+    inset: auto 0 calc(100% + 6px) 0;
+    box-sizing: border-box;
+    padding: 4px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-pop);
+    animation: lumen-menu-in .12s var(--ease);
+  }
+  .lumen-menu[hidden] { display: none; }
+  .lumen-menu hr { height: 1px; margin: 4px -4px; border: 0; background: var(--line); }
+  .lumen-menu-head { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: var(--r-sm); }
+  .lumen-menu-head:hover { background: var(--hover); }
+  .lumen-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    padding: 0 8px;
+    border-radius: var(--r-sm);
+    color: var(--ink);
+    font-size: 13px;
+  }
+  .lumen-menu-item:hover { background: var(--hover); color: var(--ink); }
+  .lumen-menu-item::before {
+    content: "";
+    flex: none;
+    width: 16px;
+    height: 16px;
+    background: var(--muted);
+    mask: var(--ic) center / contain no-repeat;
+  }
+  .lumen-menu-item[data-icon="user"] { --ic: var(--ic-user); }
+  .lumen-menu-item[data-icon="gear"] { --ic: var(--ic-gear); }
+  .lumen-menu-item[data-icon="exit"] { --ic: var(--ic-exit); }
+  .lumen-menu-theme {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 4px 0 8px;
+    color: var(--ink);
+    font-size: 13px;
+  }
+  .lumen-menu-theme::before {
+    content: "";
+    flex: none;
+    width: 16px;
+    height: 16px;
+    background: var(--muted);
+    mask: var(--ic-contrast) center / contain no-repeat;
+  }
+  .lumen-menu-theme .lumen-seg { margin-left: auto; }
+  .lumen-seg { display: flex; gap: 0; padding: 2px; border-radius: var(--r-md); background: var(--track); }
+  .lumen-seg button {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--r-sm);
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .lumen-seg button:hover { color: var(--ink); }
+  .lumen-seg button::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+    background: currentColor;
+    mask: var(--ic) center / contain no-repeat;
+  }
+  /* The active segment is pure CSS, so it follows changes from the popup too. */
+  &:not([data-lumen-theme]) .lumen-seg [data-mode="auto"],
+  &[data-lumen-theme="light"] .lumen-seg [data-mode="light"],
+  &[data-lumen-theme="dark"] .lumen-seg [data-mode="dark"] {
+    background: var(--tab-on);
+    box-shadow: var(--shadow-xs);
+    color: var(--ink);
+  }
+  .lumen-seg [data-mode="auto"] { --ic: var(--ic-monitor); }
+  .lumen-seg [data-mode="light"] { --ic: var(--ic-sun); }
+  .lumen-seg [data-mode="dark"] { --ic: var(--ic-moon); }
+
+  /* Sidebar toggle: sits in the rail's top corner, and stays put at the page edge when hidden. */
+  .lumen-rail-toggle {
+    position: fixed;
+    z-index: 41;
+    top: 13px;
+    left: var(--toggle-x, 184px);
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--r-md);
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    view-transition-name: lumen-rail-toggle;
+    transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+  }
+  .lumen-rail-toggle:hover { background: var(--active); color: var(--ink); }
+  .lumen-rail-toggle::before {
+    content: "";
+    width: 18px;
+    height: 18px;
+    background: currentColor;
+    mask: var(--ic-panel) center / contain no-repeat;
+  }
+
+  /* Guests */
+  #lsform { display: none; }
+  #lumen-guest {
+    order: 9;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 8px 0 0;
+    padding: 4px 0 4px;
+  }
+  .lumen-login, .lumen-register {
+    box-sizing: border-box;
+    display: inline-flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: var(--r-md);
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .lumen-login { background: var(--accent); color: var(--on-accent); }
+  .lumen-login:hover { background: var(--accent-hover); color: var(--on-accent); }
+  .lumen-register { border: 1px solid var(--line-2); background: var(--surface); box-shadow: var(--shadow-xs); color: var(--ink); }
+  .lumen-register:hover { background: var(--surface-2); color: var(--ink); }
+  #lumen-guest .lumen-theme {
+    --ic: var(--ic-moon);
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--r-md);
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  #lumen-guest .lumen-theme:hover { background: var(--hover); color: var(--ink); }
+  #lumen-guest .lumen-theme::before {
+    content: "";
+    width: 16px;
+    height: 16px;
+    background: currentColor;
+    mask: var(--ic) center / contain no-repeat;
+  }
+
+  /* ---- Page frame --------------------------------------------------------- */
+
+  #wp, #ft {
+    box-sizing: border-box;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    margin: 0 0 0 var(--rail);
+    padding-inline: var(--gutter);
+    background: none;
+    float: none;
+  }
+  #wp { padding-bottom: 32px; min-height: 100vh; min-height: 100dvh; overflow-x: clip; }
+  .wp { width: auto; min-width: 0; max-width: none; margin: 0; padding: 0; }
+  #wp #ct {
+    box-sizing: border-box;
+    width: auto;
+    max-width: var(--page-w);
+    margin-inline: auto;
+    padding-inline: 0;
+    border: 0;
+    background: none;
+  }
+  #ct .mn { float: none; width: auto; margin: 0; padding: 0; }
+
+  /* Breadcrumbs: the board and thread titles already say where you are. */
+  #pt {
+    box-sizing: border-box;
+    max-width: var(--page-w);
+    height: auto;
+    margin: 0 auto;
+    padding: 20px 0 0;
+    border: 0;
+    background: none;
+    color: var(--subtle);
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+  #pt .z { float: none; display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; line-height: 20px; }
+  #pt .z > * { float: none; width: auto; height: auto; margin: 0; padding: 0; background: none; font: inherit; line-height: 20px; }
+  #pt .nvhm {
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    background: none;
+    color: var(--subtle);
+    font: inherit;
+    text-indent: 0;
+  }
+  #pt .nvhm::before, #pt .nvhm::after { display: none; }
+  #pt .z > em { color: var(--line-2); font-size: 0; font-style: normal; }
+  #pt .z > em::before { content: "/"; font-size: 12.5px; }
+  #pt a { color: var(--subtle); max-width: 40ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #pt a:hover { color: var(--ink); }
+
+  /* Footer: one quiet line, the licence numbers stay. */
+  #ft {
+    padding-top: 0;
+    padding-bottom: 28px;
+    border: 0;
+    color: var(--subtle);
+    font-size: 11.5px;
+    line-height: 1.7;
+    text-align: center;
+  }
+  #ft #flk { float: none; text-align: center; }
+  #flk a { margin: 0 5px; color: var(--subtle); }
+  #flk strong { font-weight: 400; }
+  #flk a:hover { color: var(--ink); }
+  #flk img { margin-right: 3px; vertical-align: -2px; opacity: .7; }
+  #flk .pipe { display: none; }
+  #cnzz_stat_icon_1260281688 { display: none; }
+
+  /* Back to top */
+  #scrolltop {
+    position: fixed;
+    right: 20px !important;
+    left: auto !important;
+    bottom: 20px;
+    z-index: 30;
+    width: 36px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+  #scrolltop span { display: block; margin: 0; padding: 0; border: 0; }
+  #scrolltop span:not(:has(.scrolltopa)) { display: none; }
+  #scrolltop a {
+    box-sizing: border-box;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    box-shadow: var(--shadow-pop);
+    color: var(--muted);
+    cursor: pointer;
+  }
+  #scrolltop a:hover { color: var(--ink); }
+  #scrolltop a b { display: none; }
+  #scrolltop a::before {
+    content: "";
+    width: 16px;
+    height: 16px;
+    background: currentColor;
+    mask: var(--ic-up) center / contain no-repeat;
+  }
+
+  /* ---- Narrow windows: the rail folds into a top bar ---------------------- */
+
+  @media (max-width: 960px) {
+    #hd {
+      inset: 0 0 auto 0;
+      width: auto;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+      width: auto;
+      height: var(--bar-h);
+      padding: 0 12px;
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+    }
+    #hd h2 { padding: 0; }
+    #hd h2 a::after { display: none; }
+    #scbar { order: 4; flex: 0 0 150px; margin: 0; }
+    #scbar::after { display: none; }
+    #nv {
+      order: 3;
+      flex: 1 1 0;
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      mask-image: linear-gradient(90deg, #000 calc(100% - 20px), transparent);
+    }
+    #nv ul { flex-direction: row; }
+    #nv li a::before, .lumen-section, .lumen-sub { display: none; }
+    .lumen-user { order: 5; flex: none; margin: 0; }
+    .lumen-user-btn { width: auto; height: 40px; padding: 0 4px; }
+    .lumen-user-btn .lumen-user-text, .lumen-user-btn::after { display: none; }
+    .lumen-menu { inset: calc(100% + 6px) 0 auto auto; width: 224px; }
+    #wp { padding-top: var(--bar-h); }
+  }
+
+  /* Too narrow for one row: the boards get a row of their own. */
+  @media (max-width: 640px) {
+    #hd { flex-wrap: wrap; align-content: center; row-gap: 2px; }
+    #scbar { flex: 1 1 0; min-width: 0; }
+    #nv { order: 6; flex: 0 0 100%; }
+    #lumen-guest { order: 5; }
+  }
+}
+
+@media (min-width: 961px) {
+  :root[data-lumen-rail="hidden"] #hd { transform: translateX(-100%); visibility: hidden; }
+  :root[data-lumen-rail-moving] #hd { transition: transform .2s var(--ease), visibility .2s; }
+  :root[data-lumen-rail-moving] .lumen-rail-toggle { transition: left .2s var(--ease); }
+}
+@media (max-width: 960px) {
+  .lumen-rail-toggle { display: none !important; }
+}
+
+@keyframes lumen-menu-in { from { opacity: 0; transform: translateY(4px); } }
+
+/* Moon in light mode, sun in dark mode, following the same color-scheme logic. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-lumen-theme="light"]) .lumen-theme { --ic: var(--ic-sun) !important; }
+}
+:root[data-lumen-theme="dark"] .lumen-theme { --ic: var(--ic-sun) !important; }

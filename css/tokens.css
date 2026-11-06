@@ -1,0 +1,110 @@
+/*
+ * S1 Lumen · design tokens
+ *
+ * Every colour is declared once with light-dark(). The browser resolves it from
+ * `color-scheme`, so switching theme is a single attribute on <html> and "auto"
+ * needs no JavaScript at all. That is what lets the very first frame be correct.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* The shadcn/ui "neutral" palette, on a soft paper page by day. Hierarchy comes from contrast. */
+  --bg:          light-dark(#f7f6f3, #0a0a0a);
+  --bg-soft:     light-dark(#f1f0ec, #121212);
+  --rail-bg:     light-dark(#f1f0ec, #171717);
+  --surface:     light-dark(#ffffff, #171717);
+  --surface-2:   light-dark(#f5f5f5, #262626);
+  --track:       light-dark(rgb(0 0 0 / .055), #262626);
+  --tab-on:      light-dark(#ffffff, rgb(255 255 255 / .1));
+  --hover:       light-dark(rgb(0 0 0 / .04), rgb(255 255 255 / .06));
+  --active:      light-dark(rgb(0 0 0 / .07), rgb(255 255 255 / .1));
+
+  /* Text, four tiers. */
+  --ink:         light-dark(#0a0a0a, #fafafa);
+  --ink-2:       light-dark(#262626, #e5e5e5);
+  --muted:       light-dark(#737373, #a1a1a1);
+  --subtle:      light-dark(#8a8a8a, #858585);
+
+  /* Hairlines: border and input. */
+  --line:        light-dark(rgb(0 0 0 / .09), rgb(255 255 255 / .1));
+  --line-2:      light-dark(rgb(0 0 0 / .16), rgb(255 255 255 / .15));
+  --ring:        light-dark(#a1a1a1, #737373);
+
+  /* Emphasis is inverted contrast: primary is near-black by day, near-white at night. */
+  --accent:      light-dark(#171717, #e5e5e5);
+  --accent-hover: light-dark(#2e2e2e, #d4d4d4);
+  --accent-text: light-dark(#171717, #fafafa);
+  --accent-soft: light-dark(rgb(0 0 0 / .06), #262626);
+  --on-accent:   light-dark(#fafafa, #171717);
+  --amber:       light-dark(#404040, #d4d4d4);
+  --amber-soft:  light-dark(rgb(0 0 0 / .06), #262626);
+
+  --shadow-xs:   0 1px 2px rgb(0 0 0 / .05);
+  --shadow-pop:  0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1);
+
+  /* Type. System fonts only: a web font would reintroduce a swap on every load. */
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB",
+             "Segoe UI", "Microsoft YaHei", "Noto Sans SC", "Noto Sans CJK SC", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "PingFang SC", monospace;
+
+  /* User settings; content.js overrides these on <html> before first paint. */
+  --post-size: 17px;
+  --read-w: 1320px;
+
+  /* Layout. */
+  --rail: 224px;
+  --bar-h: 0px;
+  --rail-w: 224px; /* the panel itself keeps this width while it slides away */
+  --page-w: 1120px;
+  --gutter: 32px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 10px;
+  --r-xl: 14px;
+
+  /* Motion. */
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --fast: .12s;
+}
+
+:root[data-lumen-theme="light"] { color-scheme: light; }
+:root[data-lumen-theme="dark"]  { color-scheme: dark; }
+:root[data-lumen-width="standard"] { --read-w: 960px; }
+
+/* Hidden rail: the page takes the full width and leaves room for the toggle. */
+@media (min-width: 961px) {
+  :root[data-lumen-rail="hidden"] { --rail: 0px; --gutter: 56px; --toggle-x: 14px; }
+}
+
+@media (max-width: 960px) {
+  :root { --rail: 0px; --gutter: 16px; --bar-h: 52px; }
+}
+
+@media (max-width: 640px) {
+  :root { --bar-h: 92px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
+/*
+ * Cross-document view transition. The rail is its own group with no animation,
+ * so it stays perfectly still while only the content area crossfades.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 130ms;
+    animation-timing-function: ease-out;
+  }
+
+  /* The overlay would otherwise swallow clicks for as long as the crossfade runs. */
+  ::view-transition { pointer-events: none; }
+  ::view-transition-group(lumen-rail) { animation: none; }
+  ::view-transition-old(lumen-rail) { display: none; }
+  ::view-transition-new(lumen-rail) { animation: none; }
+}

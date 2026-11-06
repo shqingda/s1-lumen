@@ -1,0 +1,172 @@
+/*
+ * S1 Lumen · forum index
+ * Discuz lays boards out in a table; the table is flattened into a card grid.
+ */
+
+html:not(#_):not(#__) {
+  .pg_index {
+    #pt { display: none; }
+    #ct { padding-top: 36px; }
+
+    #chart {
+      margin: 0 0 28px;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--subtle);
+      font-size: 13px;
+    }
+    #chart::before {
+      content: "全部板块";
+      display: block;
+      margin: 0 0 4px;
+      color: var(--ink);
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: -.02em;
+      line-height: 1.25;
+    }
+    #chart p.chart { float: none; display: block; margin: 0; padding: 0; background: none; color: inherit; }
+    #chart p.chart::before { display: none; }
+    #chart em { color: var(--muted); font-style: normal; font-variant-numeric: tabular-nums; }
+    #chart .pipe { margin: 0 8px; }
+    #chart .y { display: none; }
+
+    .fl, .fl.bm { margin: 0; padding: 0; border: 0; background: none; }
+  }
+
+  /* Board cards, also used for the sub-board strip on forum pages */
+  .flg, .pg_index .bmw {
+    margin: 0 0 28px;
+    padding: 0;
+    border: 0;
+    background: none;
+
+    .bm_h {
+      height: auto;
+      margin: 0 0 10px;
+      padding: 0;
+      border: 0 !important;
+      background: none;
+    }
+    .bm_h .o { display: none; }
+    .bm_h h2, .bm_h h2 a {
+      margin: 0;
+      color: var(--subtle);
+      font-size: 12.5px;
+      font-weight: 550;
+      letter-spacing: .02em;
+      line-height: 1.5;
+    }
+    .bm_c {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 10px;
+      padding: 0;
+      border: 0;
+      background: none;
+    }
+
+    .fl_tb, .fl_tb > tbody { display: contents; }
+    .fl_tb > tbody > tr:has(.fl_g) { display: contents; }
+    .fl_tb > tbody > tr:not(:has(td)) { display: none; }
+    tr:has(.fl_g) td:not(.fl_g) { display: none; }
+
+    td.fl_g, tr:not(:has(.fl_g)) {
+      position: relative;
+      box-sizing: border-box;
+      display: block;
+      width: auto;
+      min-width: 0;
+      padding: 13px 15px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      box-shadow: var(--shadow-xs);
+      transition: border-color var(--fast) var(--ease), background var(--fast) var(--ease);
+    }
+    td.fl_g:hover, tr:not(:has(.fl_g)):hover { border-color: var(--line-2); }
+
+    /* Second-level sections arrive as four-cell rows; the card keeps the same reading order. */
+    tr:not(:has(.fl_g)) {
+      display: block;
+      td { display: block; width: auto; padding: 0; border: 0; background: none; }
+      .fl_icn, .fl_i, td > p { display: none; }
+      h2 {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        margin: 0 0 6px;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: -.005em;
+        line-height: 1.4;
+      }
+      h2 a { color: var(--ink); }
+      h2 a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+      h2 em {
+        flex: none;
+        color: var(--accent-text);
+        font-size: 12.5px;
+        font-style: normal;
+        font-variant-numeric: tabular-nums;
+        font-weight: 550;
+      }
+      .fl_by { position: relative; z-index: 1; color: var(--subtle); font-size: 12.5px; line-height: 1.55; }
+      .fl_by div { width: auto; margin: 0; padding: 0; }
+      .fl_by a.xi2 { display: block; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .fl_by a:hover { color: var(--ink); }
+      .fl_by cite { display: block; color: var(--subtle); font-style: normal; }
+      .fl_by cite a { color: var(--subtle); }
+    }
+
+    .fl_icn_g { display: none; }
+    dl { margin: 0; padding: 0; }
+
+    dt {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 0 0 6px;
+      padding: 0;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -.005em;
+      line-height: 1.4;
+    }
+    dt a { color: var(--ink) !important; }
+    /* The whole card is the link; the "latest post" link sits above it. */
+    dt a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+    dt em {
+      flex: none;
+      color: var(--accent-text);
+      font-size: 12.5px;
+      font-style: normal;
+      font-variant-numeric: tabular-nums;
+      font-weight: 550;
+    }
+
+    dd {
+      margin: 0;
+      padding: 0;
+      color: var(--subtle);
+      font-size: 12.5px;
+      line-height: 1.55;
+    }
+    dd:first-of-type { display: none; }
+    dd a { position: relative; z-index: 1; }
+    dd > a.xi2, dd > a:first-child {
+      display: block;
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    dd > a:hover { color: var(--ink); }
+    dd cite { display: block; color: var(--subtle); font-style: normal; }
+    dd cite a { color: var(--subtle); }
+    dd cite a:hover { color: var(--ink); }
+  }
+}

@@ -1,0 +1,641 @@
+/*
+ * S1 Lumen · thread list
+ * Dense single-line rows. Every <tbody> becomes a CSS grid row, and the title
+ * link covers the whole row so the entire row is one click target.
+ */
+
+html:not(#_):not(#__) {
+  :is(.pg_forumdisplay, .pg_guide) {
+    #pt { display: none; }
+    .boardnav { width: auto; margin: 0; padding: 0; }
+    #ct { padding-top: 32px; }
+    .bm, .bmw { border: 0; background: none; margin: 0; }
+    .bm_c { padding: 0; }
+
+    /* Board header */
+    .bm.bml { margin: 0 0 18px; padding: 0; }
+    .bm.bml .bm_h::before, .bm.bml .bm_h::after { display: none; }
+    .bm.bml .bm_h {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 6px 16px;
+      height: auto;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: none;
+    }
+    .bm.bml h1 {
+      order: 1;
+      flex: 1 1 320px;
+      float: none;
+      margin: 0;
+      color: var(--ink);
+      font-size: 26px !important;
+      font-weight: 600;
+      letter-spacing: -.025em;
+      line-height: 1.25;
+    }
+    .bm.bml h1 { padding: 0; font-feature-settings: "palt"; }
+    .bm.bml h1 > a { margin: 0; padding: 0; color: inherit; }
+    .bm.bml h1 .i {
+      display: block;
+      margin-top: 4px;
+      padding: 0;
+      color: var(--subtle);
+      font-size: 13px !important;
+      font-style: normal;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+    .bm.bml h1 strong { color: var(--muted); font-weight: 500; font-variant-numeric: tabular-nums; }
+    .bm.bml h1 .pipe { margin: 0 8px; }
+    .ico_fall, .ico_increase { display: none; }
+
+    .bm.bml .bm_h .y {
+      order: 2;
+      float: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-top: 5px;
+    }
+    .bm.bml .bm_h .y .pipe { display: none; }
+    .bm.bml .fa_fav, .bm.bml .fa_rss {
+      display: inline-flex;
+      align-items: center;
+      height: 28px;
+      padding: 0 11px;
+      border: 1px solid var(--line-2);
+      border-radius: var(--r-md);
+      background: none;
+      color: var(--muted);
+      font-size: 12.5px;
+      font-weight: 500;
+      transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+    }
+    .bm.bml .fa_fav:hover, .bm.bml .fa_rss:hover { background: var(--hover); color: var(--ink); }
+    .bm.bml .fa_fav strong { margin-left: 4px; color: var(--subtle); font-weight: 400; }
+
+    /* Rules stay, the moderator roll does not. */
+    .bm.bml .bm_c {
+      margin: 6px 0 0;
+      padding: 0;
+      color: var(--subtle);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .bm.bml .bm_c > div:first-child:not([id]) { display: none; }
+    .bm.bml .bm_c .ptn { padding: 0 !important; }
+    .bm.bml .bm_c br + br { display: none; }
+    /* Board notices are hand-written HTML with their own beige fills and colours. */
+    .bm.bml .bm_c * { background: none !important; color: inherit !important; }
+    .bm.bml .bm_c table { width: auto; }
+    .bm.bml .bm_c td { padding: 0 12px 0 0; border: 0; }
+    .bm.bml .bm_c a { color: var(--accent-text) !important; }
+    .bm.bml .tg_no, .bm.bml .tg_yes { display: none; }
+    .bm.bml .bm_c [id^="forum_rules_"].lumen-rules-folded { display: none !important; }
+    .bm.bml .bm_c:not(:has(> [id^="forum_rules_"]:not(.lumen-rules-folded))) { display: none; }
+    .lumen-rules-btn {
+      display: inline-flex;
+      align-items: center;
+      height: 28px;
+      padding: 0 11px;
+      border: 1px solid var(--line-2);
+      border-radius: var(--r-md);
+      background: none;
+      color: var(--muted);
+      font: inherit;
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+    }
+    .lumen-rules-btn:hover { background: var(--hover); color: var(--ink); }
+    .lumen-rules-btn[aria-expanded="true"] { background: var(--active); color: var(--ink); }
+    /* A rule table is layout, not data: its cells simply stack. */
+    .bm.bml .bm_c [id^="forum_rules_"] { display: block !important; }
+    .bm.bml .bm_c table.t_table, .bm.bml .bm_c table.t_table tbody,
+    .bm.bml .bm_c table.t_table tr, .bm.bml .bm_c table.t_table td { display: block; width: auto !important; border: 0; }
+    .bm.bml .bm_c table.t_table { margin: 0; }
+    .bm.bml .bm_c table.t_table td { padding: 0 0 4px; }
+    .bm.bml .bm_c td[hidden] { display: none; }
+    .bm.bml .bm_c img { display: block; max-width: 100%; max-height: 320px; margin: 8px 0 0; border-radius: var(--r-md); }
+    .lumen-images-folded img { display: none !important; }
+    .bm.bml .bm_c td[hidden] { display: none !important; }
+    .lumen-fold {
+      display: inline-flex;
+      align-items: center;
+      height: 24px;
+      margin: 0 0 0 8px;
+      padding: 0 8px;
+      border: 1px solid var(--line-2);
+      border-radius: var(--r-sm);
+      background: none;
+      color: var(--muted);
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .lumen-fold:hover { background: var(--hover); color: var(--ink); }
+    .bm.bml .bm_c br:has(+ .lumen-fold) { display: none; }
+
+    /* Sub-boards use the same card as the index, so they read as real destinations. */
+    .flg { margin: 0 0 20px; }
+    .flg .bm_c { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+
+    /* "推荐主题" */
+    .mn > .bm.bmw:not(#threadlist):not(.flg) {
+      margin: 0 0 18px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      background: none;
+      .bm_h {
+        height: auto;
+        margin: 0 0 4px;
+        padding: 0;
+        border: 0 !important;
+        background: none;
+      }
+      h2 { margin: 0; color: var(--subtle); font-size: 12px; font-weight: 550; }
+      ul { display: flex; flex-wrap: wrap; gap: 2px 20px; margin: 0; padding: 0; }
+      li { float: none; width: auto; margin: 0; padding: 0; background: none; font-size: 13.5px; }
+      a { color: var(--ink-2) !important; }
+      a:hover { color: var(--accent-text) !important; }
+    }
+
+    /* Type filter */
+    #thread_types {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px;
+      box-sizing: border-box;
+      width: fit-content;
+      max-width: 100%;
+      height: auto !important;
+      margin: 12px 0;
+      padding: 3px;
+      border: 0;
+      border-radius: var(--r-lg);
+      background: var(--track);
+      overflow: visible;
+    }
+    #thread_types li {
+      float: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: none;
+    }
+    #thread_types li a {
+      display: inline-flex;
+      align-items: center;
+      box-sizing: border-box;
+      height: 28px;
+      margin: 0;
+      padding: 0 10px;
+      border: 0;
+      border-radius: var(--r-md);
+      background: none;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      transition: color var(--fast) var(--ease);
+    }
+    #thread_types li a:hover { background: none; color: var(--ink); }
+    #thread_types li.a a, #thread_types li.xw1 a {
+      background: var(--tab-on);
+      box-shadow: var(--shadow-xs);
+      color: var(--ink);
+      font-weight: 500;
+    }
+    #thread_types .num { display: none; }
+    #thread_types .pipe { display: none; }
+    /* Discuz adds this when the list wraps. Everything is always shown here. */
+    #thread_types > .fold, #thread_types > .unfold { display: none; }
+
+    /* The list is one data table in a card: toolbar and column heads on top. */
+    #threadlist {
+      margin: 0;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--r-xl);
+      background: var(--surface);
+      box-shadow: var(--shadow-xs);
+      overflow: clip;
+    }
+    #threadlist .th {
+      margin: 0;
+      padding: 6px 16px;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      background: none;
+    }
+    #threadlist .th table, #threadlist .th tbody { display: block; width: auto; padding: 0; }
+    #threadlist .th tr {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 104px 52px 124px;
+      align-items: center;
+      column-gap: 14px;
+    }
+    #threadlist .th th { display: block; width: auto; height: auto; padding: 0; }
+    #threadlist .th td {
+      display: block;
+      width: auto;
+      padding: 0;
+      border: 0;
+      color: var(--subtle);
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    #threadlist .th td a { color: inherit; }
+    #threadlist .th td.num, #threadlist .th td:last-child { text-align: right; }
+    #threadlist .tf {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 2px;
+      height: auto;
+      margin: 0;
+      padding: 0;
+      font-size: 0;
+      line-height: 1;
+    }
+    #threadlist .tf > a {
+      display: inline-flex;
+      align-items: center;
+      height: 26px;
+      padding: 0 9px;
+      border: 0;
+      border-radius: var(--r-sm);
+      background-image: none;
+      color: var(--muted);
+      font-size: 12.5px;
+      font-weight: 500;
+    }
+    #threadlist .tf > a:hover { background: var(--hover); color: var(--ink); }
+    #threadlist .tf > a.xw1 { background: var(--active); color: var(--ink); }
+    #atarget {
+      order: 9;
+      float: none;
+      margin-left: auto;
+      padding: 0 4px 0 0;
+      background-image: none;
+      color: var(--subtle);
+      font-size: 12px;
+      cursor: pointer;
+    }
+    #atarget::before { color: inherit; }
+    #atarget.atarget_1 { color: var(--accent-text); }
+
+    /* Rows */
+    #threadlist .bm_c { margin: 0; padding: 0; }
+    #moderate { margin: 0; }
+    #threadlisttableid { display: block; width: auto; }
+    #threadlisttableid > tbody { display: block; border: 0; }
+    #threadlisttableid > tbody > tr {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 104px 52px 124px;
+      align-items: center;
+      column-gap: 14px;
+      margin: 0;
+      padding: 10px 16px;
+      border: 0;
+      transition: background var(--fast) var(--ease);
+    }
+    #threadlisttableid > tbody + tbody > tr { border-top: 1px solid var(--line); }
+    #threadlisttableid > tbody > tr:hover { background: var(--hover); }
+    #threadlisttableid td, #threadlisttableid th {
+      display: block;
+      width: auto;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: none;
+      line-height: 1.5;
+    }
+    #threadlisttableid td.icn { display: none; }
+
+    /* Title cell: the title always leads, so every row starts on the same edge. */
+    #threadlisttableid th {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      color: var(--ink);
+      font-size: 14.5px;
+      font-weight: 400;
+    }
+    #threadlisttableid th > * { flex: none; }
+    #threadlisttableid th > a.xst { flex: 0 1 auto; order: -1; min-width: 0; }
+    #threadlisttableid th em {
+      display: inline-block;
+      font-size: 0;
+      font-style: normal;
+    }
+    #threadlisttableid th em a {
+      position: relative;
+      z-index: 1;
+      display: inline-block;
+      padding: 0 5px;
+      border-radius: 4px;
+      background: var(--hover);
+      color: var(--muted);
+      font-size: 11.5px;
+      line-height: 1.55;
+    }
+    #threadlisttableid th em a:hover { background: var(--active); color: var(--ink); }
+
+    a.xst {
+      color: var(--ink);
+      font-size: 14.5px;
+      font-weight: 450;
+      line-height: 1.5;
+      transition: color var(--fast) var(--ease);
+    }
+    a.xst::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+    a.xst:visited { color: var(--subtle); }
+    a.xst:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-2); }
+    /* Moderator highlight colours were picked for the old beige background. */
+    a.xst[style*="color"] { color: var(--accent-text) !important; }
+    a.xst[style*="bold"] { font-weight: 600 !important; }
+
+    #threadlisttableid th > .xg1 { color: var(--subtle); font-size: 12px; font-weight: 400; }
+    #threadlisttableid th > .xg1 * { font-size: inherit; font-weight: inherit !important; }
+    #threadlisttableid th > .lumen-perm {
+      flex: none;
+      padding: 0 5px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      color: var(--subtle);
+      font-size: 11.5px;
+      line-height: 1.5;
+    }
+
+    #threadlisttableid th > img,
+    #threadlisttableid .showcontent,
+    #threadlisttableid .closeprev,
+    #threadlisttableid .fico-thumbup,
+    #threadlisttableid .fico-attachment,
+    #threadlisttableid th > .xi1 { display: none; }
+
+    /* Small markers after the title */
+    #threadlisttableid .fico-image {
+      display: inline-block;
+      order: -1;
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      background: var(--subtle);
+      font-size: 0;
+      mask: var(--ic-image) center / contain no-repeat;
+    }
+    #threadlisttableid .fico-image::before { display: none; }
+
+    #threadlisttableid .tbox {
+      display: inline-block;
+      margin: 0;
+      padding: 0 5px;
+      border: 0;
+      border-radius: 4px;
+      background: var(--amber-soft);
+      color: var(--amber);
+      font-size: 0;
+      line-height: 1.5;
+      text-shadow: none;
+    }
+    #threadlisttableid .tbox::before { content: "热"; font-size: 11px; font-weight: 550; }
+    #threadlisttableid .tbox::after { display: none; }
+
+    /* Page shortcuts after the title, the same list the forum prints. */
+    #threadlisttableid .tps {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      margin: 0;
+      padding: 0;
+      background: none;
+      color: var(--subtle);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      line-height: 20px;
+    }
+    #threadlisttableid .tps a {
+      display: inline-block;
+      min-width: 8px;
+      margin: 0;
+      padding: 0 4px;
+      border-radius: 4px;
+      background: none;
+      color: var(--subtle);
+      font-size: 12px;
+      line-height: 20px;
+      text-align: center;
+    }
+    #threadlisttableid .tps a:hover { background: var(--active); color: var(--ink); }
+
+    /* Sticky threads */
+    tbody[id^="stickthread_"] a.xst { font-weight: 500; }
+    tbody[id^="stickthread_"] th::before {
+      content: "";
+      flex: none;
+      order: -2;
+      width: 13px;
+      height: 13px;
+      background: var(--accent);
+      mask: var(--ic-pin) center / contain no-repeat;
+    }
+
+    /* Hairline between sticky and normal threads. */
+    #threadlisttableid > tbody#separatorline { margin: 0; }
+    #threadlisttableid > tbody#separatorline > tr {
+      display: block;
+      height: 1px;
+      margin: 0;
+      padding: 0;
+      border-radius: 0;
+      background: var(--line);
+    }
+    #threadlisttableid > tbody#separatorline > tr > * { display: none; }
+
+    #forumnewshow { display: block; margin: 0 -10px; }
+    #forumnew a, #forumnewshow a {
+      display: block;
+      padding: 7px 10px;
+      border-radius: var(--r-md);
+      background: var(--accent-soft);
+      color: var(--accent-text);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    /* Author, count, last post */
+    #threadlisttableid td.by,
+    #threadlisttableid td.num {
+      position: relative;
+      z-index: 1;
+      min-width: 0;
+      color: var(--subtle);
+      font-size: 12.5px;
+      line-height: 1.4;
+    }
+    #threadlisttableid td.by cite, #threadlisttableid td.by em {
+      display: block;
+      font-style: normal;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    #threadlisttableid td.by cite a { color: var(--muted); }
+    #threadlisttableid td.by cite a:hover { color: var(--accent-text); }
+    #threadlisttableid td.by em, #threadlisttableid td.by em a {
+      color: var(--subtle);
+      font-size: 11.5px;
+      font-variant-numeric: tabular-nums;
+    }
+    #threadlisttableid td.by em a:hover { color: var(--ink); }
+    #threadlisttableid td.by:nth-of-type(2) em { display: none; }
+    #threadlisttableid td.num {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+    #threadlisttableid td.num a { color: var(--ink-2); font-size: 13px; font-weight: 500; }
+    #threadlisttableid td.num em { display: none; }
+    #threadlisttableid td.by:last-child { text-align: right; }
+
+    /* Load more */
+    #autopbn { margin-top: 12px; border-radius: var(--r-lg); background: var(--surface); }
+
+    #pgt .pgb { display: none; }
+    .pgs:not(#pgt) { margin: 10px 0 0; padding: 0; border: 0; background: none; }
+    .pgs:not(#pgt) .pgsbtn, .pgs:not(#pgt) .pgb { display: none; }
+    .pgs:not(#pgt) #fd_page_bottom { float: none; display: flex; justify-content: flex-end; }
+
+    @media (max-width: 1180px) {
+      #threadlisttableid > tbody > tr, #threadlist .th tr { grid-template-columns: minmax(0, 1fr) 52px 104px; }
+      #threadlisttableid td.by:nth-of-type(2), #threadlist .th td:nth-of-type(1) { display: none; }
+    }
+    /* Too narrow for the extras: the title takes the row, the page links go. */
+    @media (max-width: 760px) {
+      #threadlisttableid th { flex-wrap: wrap; row-gap: 2px; }
+      #threadlisttableid th > a.xst { flex: 1 1 100%; }
+      #threadlisttableid tbody[id^="stickthread_"] th > a.xst { flex-basis: calc(100% - 24px); }
+      #threadlisttableid th .tps { display: none; }
+      #pgt .pg a:not(.nxt):not(.prev), #pgt .pg strong { display: none; }
+    }
+    @media (max-width: 640px) {
+      #threadlisttableid > tbody > tr, #threadlist .th tr { grid-template-columns: minmax(0, 1fr) 48px; }
+      #threadlisttableid td.by:last-of-type, #threadlist .th td:last-child, #threadlist .tf label { display: none; }
+    }
+  }
+
+  /* Sticky toolbar, shared with the thread page */
+  #pgt {
+    position: sticky;
+    z-index: 20;
+    top: var(--bar-h, 0px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 30px;
+    /* Bleeds to the full width of the content pane, wherever the column sits. */
+    --bleed: calc((100vw - var(--rail) - 100%) / 2);
+    margin-inline: calc(var(--bleed) * -1);
+    padding: 9px var(--bleed);
+    border: 0;
+    border-bottom: 1px solid transparent;
+    background: color-mix(in srgb, var(--bg) 84%, transparent);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    backdrop-filter: blur(16px) saturate(1.4);
+  }
+  #pgt::after { display: none; }
+  #pgt .pgb { order: 1; float: none; margin: 0; }
+  #pgt .pgb a {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 30px;
+    margin: 0;
+    padding: 0 10px 0 6px;
+    border: 0;
+    border-radius: var(--r-md);
+    background: none;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  #pgt .pgb a::before {
+    content: "";
+    width: 15px;
+    height: 15px;
+    background: currentColor;
+    mask: var(--ic-back) center / contain no-repeat;
+  }
+  #pgt .pgb a:hover { background: var(--hover); color: var(--ink); }
+
+  /* New thread menu: one row per kind, icon beside its label. */
+  #newspecial_menu { box-sizing: border-box; width: 148px; }
+  #newspecial_menu li { display: block; }
+  #newspecial_menu li::before { display: none; }
+  #newspecial_menu a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    padding: 0 10px;
+    color: var(--ink-2);
+    font-size: 13.5px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  #newspecial_menu a:hover { background: var(--hover); color: var(--ink); text-decoration: none; }
+  #newspecial_menu a::before {
+    content: "";
+    flex: none;
+    width: 16px;
+    height: 16px;
+    background: var(--subtle);
+    mask: var(--ic-post) center / contain no-repeat;
+  }
+  #newspecial_menu .poll a::before { mask-image: var(--ic-poll); }
+  #newspecial_menu .debate a::before { mask-image: var(--ic-chat); }
+  #newspecial_menu .reward a::before { mask-image: var(--ic-star); }
+  #newspecial_menu .activity a::before { mask-image: var(--ic-star); }
+
+  .pgsbtn, #newspecial, #newspecialtmp, #post_reply {
+    display: inline-flex;
+    align-items: center;
+    float: none;
+    box-sizing: border-box;
+    width: auto;
+    height: 30px;
+    margin: 0;
+    padding: 0 14px;
+    border: 0;
+    border-radius: var(--r-md);
+    line-height: 30px;
+    background: var(--accent) none;
+    color: var(--on-accent);
+    font-size: 13px;
+    font-weight: 550;
+    letter-spacing: 0;
+    cursor: pointer;
+    transition: background var(--fast) var(--ease);
+  }
+  .pgsbtn:hover, #newspecial:hover, #newspecialtmp:hover, #post_reply:hover { background: var(--accent-hover); color: var(--on-accent); }
+
+  #pgt #newspecial, #pgt #newspecialtmp, #pgt .pgsbtn { order: 2; }
+  #pgt > span[id^="fd_page"], #pgt > .pgt, #pgt .pg { order: 3; }
+  #pgt > span[id^="fd_page"], #pgt > .pgt { float: none; margin-left: auto; }
+
+  /* Filter popup with the sort and date options */
+  #filter_dateline_menu, #filter_orderby_menu, #filter_special_menu, #filter_reward_menu {
+    .pipe { color: var(--subtle); }
+    ul { padding: 0; }
+    a { display: inline-block; }
+  }
+}

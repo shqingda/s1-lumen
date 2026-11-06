@@ -1,0 +1,689 @@
+/*
+ * S1 Lumen · thread page
+ * One reading column. The two-column post table is flattened with
+ * `display: contents` so avatar, name, time and floor share one header line.
+ */
+
+html:not(#_):not(#__) {
+  .pg_viewthread {
+    #wp #ct { max-width: var(--read-w); padding-top: 6px; }
+    #pt { display: none; }
+
+    /* Toolbar: back to the board, the title once it scrolls away, compact paging. */
+    #pgt .pgb, #pgt #newspecial, #pgt #newspecialtmp, #newspecial_menu { display: none; }
+    #pgt > .pgt { order: 4; flex: none; margin-left: 0; }
+    #pgt #post_reply, #pgt .lumen-reply { order: 5; flex: none; }
+    #pgt .pg a:not(.nxt):not(.prev), #pgt .pg strong { display: none; }
+
+    .lumen-crumb {
+      order: 1;
+      flex: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      height: 30px;
+      padding: 0 8px 0 2px;
+      border-radius: var(--r-md);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .lumen-crumb::before {
+      content: "";
+      width: 15px;
+      height: 15px;
+      background: currentColor;
+      mask: var(--ic-back) center / contain no-repeat;
+    }
+    .lumen-crumb:hover { background: var(--hover); color: var(--ink); }
+
+    .lumen-bar-title {
+      order: 2;
+      flex: 1 1 0;
+      min-width: 0;
+      color: var(--ink-2);
+      font-size: 13px;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      animation: lumen-bar-title linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 90px 150px;
+    }
+    .lumen-reply {
+      display: inline-flex;
+      align-items: center;
+      height: 30px;
+      padding: 0 14px;
+      border-radius: var(--r-md);
+      background: var(--accent);
+      color: var(--on-accent);
+      font-size: 13px;
+      font-weight: 550;
+      transition: background var(--fast) var(--ease);
+    }
+    .lumen-reply:hover { background: var(--accent-hover); color: var(--on-accent); }
+
+    #postlist { margin: 0; padding: 0; border: 0; background: none; }
+
+    /* Title block */
+    #postlist > table:first-child, #postlist > table:first-child > tbody { display: block; }
+    #postlist > table:first-child > tbody > tr {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 0 16px;
+      padding: 8px 0 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    #postlist > table:first-child td { display: contents; }
+    #postlist > table:first-child .pls .hm {
+      grid-column: 1;
+      grid-row: 2;
+      margin: 6px 0 0;
+      padding: 0;
+      color: var(--subtle);
+      font-size: 13px;
+      text-align: left;
+    }
+    #postlist > table:first-child .pls .hm .xg1 { color: var(--subtle); }
+    #postlist > table:first-child .pls .hm .xi1 {
+      margin: 0 0 0 3px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+    #postlist > table:first-child .pls .hm .pipe { margin: 0 10px; }
+
+    h1.ts {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      float: none;
+      margin: 0;
+      padding: 0;
+      color: var(--ink);
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: -.015em;
+      line-height: 1.35;
+      font-feature-settings: "palt";
+    }
+    h1.ts > a {
+      display: inline-block;
+      margin-right: 8px;
+      padding: 1px 7px;
+      border-radius: var(--r-sm);
+      background: var(--hover);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0;
+      vertical-align: 5px;
+    }
+    h1.ts > a:hover { background: var(--active); color: var(--ink); }
+    #thread_subject { color: inherit; font: inherit; }
+
+    .vwthd > .y, .vwthd > span.xg1 { display: none; }
+
+    /* Posts */
+    #postlist > table.ad, tr.ad, #postlist .ad { display: none; }
+    #postlist > div[id^="post_"], #postlistreply { margin: 0; padding: 0; border: 0; background: none; }
+    #postlist > div[id^="post_"] { border-bottom: 1px solid var(--line); }
+    #postlist > div[id^="post_"]:last-of-type { border-bottom: 0; }
+
+    table.plhin {
+      display: grid;
+      grid-template-columns: 40px auto minmax(0, 1fr) auto;
+      column-gap: 0;
+      width: auto;
+      padding: 16px 0 18px;
+      border: 0;
+      table-layout: auto;
+    }
+    table.plhin > tbody, table.plhin > tbody > tr { display: contents; }
+    table.plhin td { padding: 0; border: 0; background: none; }
+
+    /* Left column dissolves */
+    table.plhin td.pls {
+      display: contents;
+      width: auto;
+      border: 0;
+      background: none;
+    }
+    .favatar {
+      display: contents;
+      position: static !important;
+      top: auto !important;
+      width: auto !important;
+      background: none;
+    }
+    .favatar > *:not(.pi):not(:has(.avatar)) { display: none; }
+    .favatar > :has(.avatar) { grid-column: 1; grid-row: 1 / span 2; }
+    .favatar .avatar { margin: 0; padding: 0; }
+    .favatar .avatar a { display: block; width: 32px; height: 32px; }
+    .favatar .avatar img, .favatar .avtm img {
+      display: block;
+      width: 32px;
+      height: 32px;
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: var(--surface-2);
+      object-fit: cover;
+      box-shadow: none;
+    }
+
+    /* Discuz ships this profile card in every post but never opens it here. */
+    table.plhin { position: relative; }
+    .favatar > .bui {
+      position: absolute;
+      z-index: 30;
+      top: 54px;
+      left: 0;
+      display: block !important;
+      box-sizing: border-box;
+      width: 264px !important;
+      margin: 0 !important;
+      padding: 12px 14px;
+      font-size: 12.5px;
+      line-height: 1.7;
+      visibility: hidden;
+      opacity: 0;
+      /* Leaving waits a moment, so a slanted path to the card does not dismiss it. */
+      transition: opacity var(--fast) var(--ease) .18s, visibility 0s linear .3s;
+    }
+    /* An invisible bridge over the gap: the pointer never leaves the hover chain. */
+    .favatar > .bui::before { content: ""; position: absolute; inset: -24px 0 100%; }
+    .favatar:has(.avatar:hover) > .bui, .favatar > .bui:hover {
+      visibility: visible;
+      opacity: 1;
+      transition: opacity var(--fast) var(--ease) .3s, visibility 0s linear .3s;
+    }
+    .favatar > .bui:hover { transition-delay: 0s; }
+
+    /* Banned authors: Discuz prints the words where the picture would be. */
+    .favatar .avatar:not(:has(img)) {
+      position: relative;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--surface-2);
+      box-shadow: inset 0 0 0 1px var(--line);
+      font-size: 0;
+      overflow: hidden;
+    }
+    .favatar .avatar:not(:has(img))::before {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      background: var(--subtle);
+      mask: var(--ic-ban) center / contain no-repeat;
+    }
+    .locked {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      padding: 10px 12px;
+      border: 1px dashed var(--line-2);
+      border-radius: var(--r-md);
+      background: none;
+      color: var(--muted);
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
+    .locked::before {
+      content: "";
+      flex: none;
+      width: 15px;
+      height: 15px;
+      background: var(--subtle);
+      mask: var(--ic-lock) center / contain no-repeat;
+    }
+    .locked em { color: inherit; font-style: normal; }
+    .attach_nopermission img { filter: grayscale(1); opacity: .6; }
+    .favatar > .bui .m { display: none; }
+    .favatar > .bui .i { float: none; width: auto; }
+    .favatar > .bui .i > div:first-child { display: flex; align-items: baseline; gap: 8px; }
+    .favatar > .bui :is(p, em, strong) { margin: 0; padding: 0; }
+    .favatar > .bui .i a { display: inline; width: auto; height: auto; margin: 0; padding: 0; }
+    .favatar > .bui #avatarfeed { display: none; }
+
+    .favatar > .pi {
+      grid-column: 2;
+      grid-row: 1;
+      align-self: center;
+      height: auto;
+      margin: 0 8px 0 0;
+      padding: 0;
+      border: 0;
+      background: none;
+      overflow: visible;
+    }
+    .favatar .authi {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+      line-height: 32px;
+    }
+    .favatar .authi a {
+      color: var(--ink);
+      font-size: 13.5px;
+      font-weight: 600;
+    }
+    .favatar .authi a:hover { color: var(--accent-text); }
+
+    div[data-lumen-op] .favatar .authi::after {
+      content: "楼主";
+      padding: 0 5px;
+      border-radius: 4px;
+      background: var(--accent-soft);
+      color: var(--accent-text);
+      font-size: 11px;
+      font-weight: 550;
+      line-height: 1.55;
+    }
+
+    /* Right column dissolves too */
+    table.plhin td.plc { display: contents; }
+    td.plc > .pi {
+      display: contents;
+      height: auto;
+      border: 0;
+    }
+    td.plc > .pi > #fj { display: none; }
+    td.plc > .pi > strong {
+      grid-column: 4;
+      grid-row: 1;
+      float: none;
+      align-self: center;
+      margin: 0;
+      font-weight: 400;
+      line-height: 32px;
+    }
+    td.plc > .pi > strong a {
+      float: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      color: var(--subtle);
+      font-size: 12.5px;
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+    }
+    td.plc > .pi > strong a:hover { color: var(--ink); }
+    td.plc > .pi > strong em, td.plc > .pi > strong sup {
+      color: inherit;
+      font-size: inherit;
+      font-style: normal;
+      vertical-align: baseline;
+    }
+    td.plc > .pi > strong sup { margin-left: 1px; }
+
+    .pti {
+      grid-column: 3;
+      grid-row: 1;
+      float: none;
+      align-self: center;
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .pti .pdbt { display: none; }
+    .pti .authi {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 32px;
+      margin: 0;
+      padding: 0;
+      color: var(--subtle);
+      font-size: 12.5px;
+      line-height: 32px;
+      white-space: nowrap;
+    }
+    .pti .authi .pipe, .pti .authi .authicn, .pti .authi .none { display: none; }
+    .pti .authi em { color: inherit; font-style: normal; }
+    .pti .authi .lumen-device { color: var(--subtle); opacity: .75; }
+    .pti .authi a {
+      color: var(--subtle);
+      opacity: 0;
+      transition: opacity var(--fast) var(--ease), color var(--fast) var(--ease);
+    }
+    .pti .authi a:hover { color: var(--accent-text); }
+    table.plhin:hover .pti .authi a, .pti .authi a:focus-visible { opacity: 1; }
+    .pti .authi .show { display: none; }
+
+    /* Content */
+    td.plc > .pct {
+      grid-column: 2 / -1;
+      grid-row: 2;
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+    }
+    .pct .pcb { margin: 0; }
+    .pcb .t_fsz { min-height: 0; margin: 0; padding: 0; }
+    .t_fsz > table, .t_fsz > table > tbody, .t_fsz > table > tbody > tr { display: block; width: auto; }
+
+    .t_f {
+      display: block;
+      padding: 2px 0 0;
+      color: var(--ink);
+      font-size: var(--post-size);
+      line-height: 1.75;
+      overflow-wrap: anywhere;
+    }
+    .t_f font[size] { font-size: inherit; }
+    .t_f font[size="1"] { font-size: .8em; }
+    .t_f font[size="2"] { font-size: .875em; }
+    .t_f font[size="4"] { font-size: 1.15em; }
+    .t_f font[size="5"] { font-size: 1.35em; }
+    .t_f font[size="6"], .t_f font[size="7"] { font-size: 1.6em; }
+    .t_f strong, .t_f b { font-weight: 650; }
+
+    .t_f a {
+      color: var(--accent-text);
+      text-decoration: underline;
+      text-decoration-color: color-mix(in srgb, var(--accent-text) 40%, transparent);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+    .t_f a:hover { text-decoration-color: currentColor; }
+
+    .t_f img { max-width: 100%; height: auto; }
+    .t_f img.zoom, .t_f img[file], .t_f img[id^="aimg_"], .t_f .mbn img {
+      display: block;
+      margin: 10px 0;
+      border-radius: var(--r-md);
+      cursor: zoom-in;
+    }
+    .t_f img[smilieid] { display: inline; margin: 0 1px; vertical-align: -4px; }
+
+    .pstatus {
+      display: block;
+      margin: 0 0 8px;
+      color: var(--subtle);
+      font-size: 12.5px;
+      font-style: normal;
+      line-height: 1.5;
+      text-align: left;
+    }
+    .pstatus + br, .pstatus + br + br { display: none; }
+
+    /* Quotes */
+    .quote {
+      margin: 6px 0 10px;
+      padding: 8px 12px 9px;
+      border: 0;
+      border-left: 2px solid var(--line-2);
+      border-radius: 0 var(--r-md) var(--r-md) 0;
+      background: var(--hover) none;
+      color: var(--muted);
+      font-size: .9em;
+      line-height: 1.65;
+      overflow: visible;
+    }
+    .quote + br { display: none; }
+
+    /* Poll */
+    .pinf { margin: 0 0 10px; color: var(--muted); font-size: 13.5px; }
+    .pcht { margin: 0 0 16px; padding: 0; border: 0; background: none; }
+    .pcht td { padding: 3px 12px 3px 0; border: 0; font-size: 14px; line-height: 1.6; }
+    .pcht .pc, .pcht .pr { margin: 0 8px 0 0; vertical-align: -2px; }
+    .pcht .pn { margin-top: 8px; }
+    .quote blockquote {
+      display: block;
+      margin: 0;
+      padding: 0;
+      background: none;
+      color: inherit;
+    }
+    .quote font[size="2"] { font-size: 12.5px; }
+    .quote a { color: var(--subtle); text-decoration: none; }
+    .quote a font { color: var(--subtle); }
+    .quote a:hover, .quote a:hover font { color: var(--accent-text); }
+
+    /* Code */
+    .blockcode {
+      margin: 10px 0;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      background: var(--bg-soft);
+      color: var(--ink-2);
+      font-size: 13px;
+      overflow: auto;
+    }
+    .blockcode ol { margin: 0; padding: 0 0 0 2.2em; }
+    .blockcode ol li {
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--ink-2);
+      font-family: var(--font-mono);
+      line-height: 1.6;
+    }
+    .blockcode em { display: none; }
+
+    /* Tables written in posts */
+    .t_table { max-width: 100%; margin: 8px 0; border: 1px solid var(--line-2); border-collapse: collapse; }
+    .t_table td { padding: 6px 10px; border: 1px solid var(--line); background: none; font-size: .92em; }
+
+    /* Attachments, ratings, comments */
+    .pattl, .tattl, .attach_nopermission {
+      margin: 10px 0 0;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      background: none;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .attach_nopermission h3, .attach_nopermission strong { color: var(--ink-2); font-size: 13px; }
+    .attach_nopermission { position: relative; width: auto; background-image: none; }
+    .attach_nopermission div { padding: 2px 0 2px 44px; border: 0; background-position: 0 50%; background-size: 32px; }
+    .atips_close { color: var(--subtle); }
+
+    /* Ratings: a quiet footnote under the post. */
+    .psth { display: none; }
+    .rate {
+      margin: 12px 0 0;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      background: none;
+      font-size: 12.5px;
+    }
+    .rate dd { margin: 0; padding: 0; }
+    .ratl { width: 100%; border: 0; }
+    .ratl th, .ratl td {
+      padding: 3px 8px 3px 0;
+      border: 0;
+      background: none;
+      color: var(--muted);
+      font-size: 12.5px;
+      font-weight: 400;
+      vertical-align: middle;
+    }
+    .ratl th.xw1, .ratl th.xw1 a { color: var(--ink-2); font-weight: 550; }
+    .ratl i { font-style: normal; }
+    .ratl .txt_h { color: var(--subtle); }
+    .ratl .xi1 { background: none !important; color: var(--accent-text); }
+    .ratl a { color: var(--muted); text-decoration: none; }
+    .ratl a:hover { color: var(--ink); }
+    .ratl img {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      margin: 0 4px 0 0;
+      border-radius: 50%;
+      vertical-align: -4px;
+    }
+    .ratl_l td { border: 0; }
+    .ratc { margin: 4px 0 0; padding: 0; border: 0; font-size: 12px; }
+    .ratc a { color: var(--subtle); text-decoration: none; }
+    .cm { margin: 8px 0 0; padding: 0; border: 0; }
+    .cm h3 { color: var(--muted); font-size: 12.5px; }
+    .pstl { padding: 4px 0; border-bottom: 1px solid var(--line); color: var(--muted); }
+
+    .sign {
+      display: none;
+      margin: 12px 0 0;
+      padding: 8px 0 0;
+      border: 0;
+      border-top: 1px solid var(--line);
+      background: none;
+      color: var(--subtle);
+      font-size: 12.5px;
+      line-height: 1.6;
+      overflow: visible;
+    }
+    /* The site floats a "SIGNATURE" tag above the line. The line says enough. */
+    .sign::before { display: none; }
+    .sign, .sign * { line-height: 1.6; }
+    .sign img { max-height: 80px; }
+    .pct .sign { max-height: none !important; }
+
+    /* Footer rows of a post */
+    table.plhin td.plc.plm {
+      grid-column: 2 / -1;
+      grid-row: 3;
+      display: block;
+    }
+    #p_btn {
+      display: flex;
+      gap: 6px;
+      margin: 12px 0 0;
+      padding: 0;
+      text-align: left;
+    }
+    #p_btn a {
+      display: inline-flex;
+      align-items: center;
+      float: none;
+      height: 28px;
+      margin: 0;
+      padding: 0 11px;
+      border: 1px solid var(--line-2);
+      border-radius: var(--r-md);
+      background: none;
+      color: var(--muted);
+      font-size: 12.5px;
+    }
+    #p_btn a:hover { background: var(--hover); color: var(--ink); }
+    #p_btn i {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      float: none;
+      padding: 0;
+      background: none;
+      color: inherit;
+      font-style: normal;
+      height: auto;
+      line-height: 1;
+    }
+    #p_btn i em { display: none; }
+    #p_btn span { margin: 0 0 0 2px; padding: 0; color: var(--subtle); background: none; }
+
+    /* Actions fade in on the header line, so they never cost any vertical space. */
+    table.plhin td.plc:has(> .po) {
+      grid-column: 3;
+      grid-row: 1;
+      display: block;
+      align-self: center;
+      justify-self: end;
+      margin-right: 6px;
+    }
+    td.pls:empty { display: none; }
+    tr[id^="_postposition"] { display: none; }
+
+    .po.hin {
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: none;
+      opacity: 0;
+      transition: opacity var(--fast) var(--ease);
+    }
+    table.plhin:hover .po.hin, .po.hin:focus-within { opacity: 1; }
+    @media (hover: none) { .po.hin, .pti .authi a { opacity: 1; } }
+
+    .pob {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin: 0;
+      padding: 0;
+    }
+    .pob em, .pob p {
+      float: none;
+      display: contents;
+      margin: 0;
+      padding: 0;
+    }
+    .pob a {
+      float: none;
+      display: inline-flex;
+      align-items: center;
+      height: 26px;
+      margin: 0;
+      padding: 0 8px;
+      border: 0;
+      border-radius: var(--r-sm);
+      background: none;
+      color: var(--subtle);
+      font-size: 12.5px;
+      line-height: 1;
+    }
+    .pob a::before, .pob a::after { display: none; }
+    .pob a:hover { background: var(--hover); color: var(--ink); }
+    .pob .fastre { color: var(--ink-2); font-weight: 500; }
+    .pob a[id^="mgc_post"] { display: none !important; }
+
+    /* Bottom of the list */
+    #ct > .pgs:not(#pgt) {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      margin: 10px 0 24px;
+      padding: 0;
+    }
+    #ct > .pgs:not(#pgt) .pgb, #ct > .pgs:not(#pgt) #newspecialtmp, #ct > .pgs:not(#pgt) .pgsbtn { display: none; }
+    #ct > .pgs:not(#pgt) #post_reply { margin-right: auto; }
+    #ct > .pgs:not(#pgt) > .pgt { float: none; }
+
+    #modactions { display: none; }
+  }
+
+  :root[data-lumen-signature="on"] .pg_viewthread .sign,
+  &[data-lumen-signature="on"] .pg_viewthread .sign { display: block; }
+
+  /* User-chosen colours, nudged per theme to stay readable (see content.js). */
+  .t_f [style*="--c-dark"] { color: light-dark(var(--c-light), var(--c-dark)) !important; }
+
+  /* White or page-coloured text is a spoiler by convention, so it stays one. */
+  .t_f [data-lumen-spoiler] {
+    border-radius: 3px;
+    background: var(--active);
+    color: transparent !important;
+    transition: color var(--fast) var(--ease), background var(--fast) var(--ease);
+  }
+  .t_f [data-lumen-spoiler]:hover { background: var(--hover); color: var(--ink) !important; }
+  .t_f [data-lumen-spoiler]::selection { color: var(--ink); }
+
+  /* Image zoom viewer */
+  .zoominner { background: var(--surface); border-radius: var(--r-lg); }
+  .zoominner p, .zoominner .y { color: var(--muted); }
+}
+
+@keyframes lumen-bar-title {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: none; }
+}

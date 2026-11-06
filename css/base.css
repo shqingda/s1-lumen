@@ -1,0 +1,405 @@
+/*
+ * S1 Lumen · base: reset and shared components
+ *
+ * Manifest stylesheets sit before the page's own sheets in the cascade, so an
+ * equal-specificity site rule would win. Nesting everything under two :not(#id)
+ * adds two IDs of specificity: we beat the site without !important, and Discuz
+ * can still show and hide its popups with inline `display` styles.
+ */
+
+html:not(#_):not(#__) {
+  & {
+    background: var(--bg);
+    scrollbar-gutter: stable;
+    scroll-padding-top: calc(76px + var(--bar-h, 0px));
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-2) transparent;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    min-width: 0;
+    background: var(--bg) none;
+    color: var(--ink);
+    font: 400 14px/1.6 var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection { background: var(--accent-soft); color: var(--ink); }
+
+  /* Discuz moves focus by script when menus open; no focus ring should ever follow. */
+  *, *:focus, *:focus-visible { outline: 0 !important; }
+  a, button { -webkit-tap-highlight-color: transparent; }
+
+  a { color: inherit; text-decoration: none; }
+  a:hover { color: var(--ink); text-decoration: none; }
+
+  input, button, select, textarea { font-family: var(--font-ui); }
+  input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
+  table { border-collapse: collapse; }
+  h1, h2, h3, h4 { color: var(--ink); }
+
+  /* Discuz colour utilities */
+  .xg1, .xg1 a, .xg1 .xi2 { color: var(--subtle) !important; }
+  .xg2, .xg2 a { color: var(--muted); }
+  .xi1, .xi1 a, .onerror { color: var(--accent-text); }
+  .xi2, .xi2 a { color: var(--accent-text); }
+  .xi3, .xi3 a { color: var(--ink-2); }
+  .pipe { color: var(--line-2); }
+
+  hr.l, hr.bk, hr.da { background: none; border: 0; border-top: 1px solid var(--line); }
+  .bbda, .bbs, .tbmu, .obn, .rfm { border-bottom: 1px solid var(--line); }
+  .btda, .bts { border-top: 1px solid var(--line); }
+  .alt, .alt th, .alt td { background: var(--surface-2); }
+
+  /* Buttons. Primary is an inverted monochrome pill. */
+  .pn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    padding: 0 14px;
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    box-shadow: var(--shadow-xs);
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--fast) var(--ease), border-color var(--fast) var(--ease);
+  }
+  a.pn { color: var(--ink) !important; }
+  .pn:hover { background: var(--surface-2); }
+  .pn:active { background: var(--surface-2); }
+  .pn em, .pn span, .pn strong {
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    line-height: 1;
+    text-shadow: none;
+  }
+  .pnc, a.pnc {
+    border-color: transparent;
+    background: var(--accent);
+    color: var(--on-accent) !important;
+  }
+  .pnc:hover, a.pnc:hover { background: var(--accent-hover); }
+  .pnc:active { background: var(--accent-hover); }
+
+  /* Fields */
+  .px, .pt, .ps, select, textarea {
+    box-sizing: border-box;
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    box-shadow: var(--shadow-xs);
+    color: var(--ink);
+    font-size: 13.5px;
+    transition: border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+  }
+  .px, .ps, select { min-height: 32px; padding: 0 10px; }
+  .pt, textarea { padding: 8px 10px; line-height: 1.6; }
+  .px:focus, .pt:focus, .ps:focus, select:focus, textarea:focus {
+    border-color: var(--ring);
+    box-shadow: var(--shadow-xs);
+  }
+  .er { border-color: var(--accent); background: var(--accent-soft); }
+
+  .ftid a, .dpbtn {
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-md);
+    background-color: var(--surface);
+    color: var(--ink) !important;
+  }
+
+  /* Popups and menus */
+  .p_pop, .p_pof, .sllt, .sltm {
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-pop);
+    color: var(--ink);
+  }
+  .p_pop { padding: 4px; min-width: 96px; }
+  .p_pop a, .sltm li {
+    display: block;
+    height: auto;
+    padding: 6px 10px;
+    border: 0;
+    border-radius: var(--r-sm);
+    background: none;
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+  .p_pop a:hover, .p_pop a.a, .sltm li:hover, .sltm li.current {
+    background: var(--hover);
+    color: var(--ink);
+  }
+  .p_opt, .tip, .tip_c, .tip_horn { color: var(--ink); }
+
+  /* Floating windows: the old nine-cell frame table collapses to one rounded block,
+     so nothing inside can show square corners past the radius. */
+  .fwinmask { border-radius: var(--r-xl); background: none; }
+  .fwin, .fwin > tbody, .fwin > tbody > tr { display: block; background: none; }
+  .fwin > tbody > tr:not(:has(> .m_c)), .fwin td:is(.t_l, .t_c, .t_r, .m_l, .m_r, .b_l, .b_c, .b_r) { display: none; }
+  .m_c {
+    display: block;
+    overflow: hidden;
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-xl);
+    background: var(--surface);
+    box-shadow: var(--shadow-pop);
+    color: var(--ink);
+  }
+  .m_c > *, .m_c form, .m_c .tm_c, .m_c .f_c, .m_c .c { background: none; }
+  .m_c .o, .m_c .fsb { border-top: 1px solid var(--line); background: none; }
+  .flb {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: auto;
+    padding: 14px 16px 8px;
+    color: var(--ink);
+    font-size: 14px;
+  }
+  .flb em { float: none; color: var(--ink); font-size: 14px; font-style: normal; font-weight: 650; }
+  .flb span { float: none; }
+  .m_c .c { padding: 0 16px 12px; }
+  .m_c .o {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    height: auto;
+    min-height: 32px;
+    padding: 10px 16px;
+  }
+  .m_c .o label { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+  .m_c .o .pc { margin: 0; }
+
+  /* Small tables in dialogs, such as the rating form */
+  .m_c .dt { width: 100%; margin: 0 0 12px; border: 0; border-collapse: collapse; }
+  #rateform { min-width: 340px; }
+  .m_c .dt th, .m_c .dt td {
+    padding: 8px 12px 8px 0;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    background: none;
+    font-size: 13px;
+    line-height: 32px;
+    text-align: left;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  .m_c .dt th { padding-block: 0 6px; color: var(--subtle); font-size: 12px; font-weight: 500; line-height: 20px; }
+  .m_c .dt th:last-child, .m_c .dt td:last-child { padding-right: 0; }
+  .m_c .dt .px { float: none; display: inline-block; box-sizing: border-box; width: 60px !important; height: 32px; padding: 0 8px; text-align: center; vertical-align: middle; }
+  .m_c .dt .dpbtn { display: inline-block; margin-left: 4px; vertical-align: middle; }
+  .dpbtn {
+    float: none;
+    box-sizing: border-box;
+    flex: none;
+    position: relative;
+    width: 32px;
+    height: 32px;
+    border-width: 1px;
+    background-image: none;
+    text-indent: -9999px;
+  }
+  .dpbtn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--muted);
+    mask: var(--ic-back) center / 14px no-repeat;
+    transform: rotate(-90deg);
+  }
+  .dpbtn:hover { background-color: var(--hover); }
+  .tpclg { margin: 0; }
+  .tpclg h4 { margin: 0 0 6px; color: var(--muted); font-size: 12.5px; font-weight: 500; }
+  .tpclg h4 a.dpbtn { display: none; }
+  .reason_slct { width: 100%; }
+  .reason_slct td { padding: 0; }
+  .reason_slct :is(.pt, .px) { width: 100% !important; }
+  .reason_slct .reasonselect {
+    box-sizing: border-box;
+    height: auto;
+    max-height: 132px;
+    margin: 0 0 8px;
+    padding: 4px;
+    overflow: auto !important;
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-md);
+    background: var(--surface);
+  }
+  .reason_slct .reasonselect:hover { height: auto; }
+  .reason_slct .reasonselect li {
+    padding: 4px 8px;
+    border-radius: var(--r-sm);
+    color: var(--ink-2);
+    font-size: 13px;
+    line-height: 1.5;
+    cursor: pointer;
+  }
+  .reason_slct .reasonselect li:hover { background: var(--hover); color: var(--ink); }
+  .reason_slct .reasonarea { display: block; box-sizing: border-box; height: 64px; margin: 0; resize: vertical; }
+  .flbc {
+    position: relative;
+    float: none;
+    display: block;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--r-sm);
+    background: none;
+    color: var(--muted);
+    font-size: 0;
+  }
+  .flbc::before {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    color: inherit;
+    background: currentColor;
+    mask: var(--ic-x) center / contain no-repeat;
+  }
+  .flbc:hover { background: var(--hover); color: var(--ink); }
+
+  /* Short messages read fine without the big status glyph. */
+  .alert_right, .alert_error, .alert_info { min-height: 0; padding: 2px 0; font-size: 13.5px; line-height: 1.7; }
+  .alert_right::before, .alert_error::before, .alert_info::before { display: none; }
+  .altw { width: 340px; }
+  #fwin_dialog, #ntcwin { color: var(--ink); }
+  .pc_inner, .popupcredit, .showmenu_tip { color: var(--ink); }
+  #ntcwin .pc_inner, .ntcwin .pc_inner {
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-pop);
+  }
+  #ajaxwaitid {
+    border-radius: var(--r-md);
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  /* Editors inside floating windows keep a fixed width: Discuz centres the window from it. */
+  .fwin .tedt { width: min(620px, calc(100vw - 96px)); }
+
+  /* Hover card on avatars */
+  .bui { padding: 12px; color: var(--ink-2); font-size: 12.5px; }
+  .bui a, .bui .i a { color: var(--ink); }
+  .bui .i strong a { font-size: 13.5px; font-weight: 600; }
+  .bui .i em, .bui .i p { color: var(--muted); font-style: normal; }
+  .bui .m img { border: 0; border-radius: var(--r-md); background: var(--surface-2); }
+  .bui .imicn { display: none; }
+
+  /* Pagination */
+  .pg {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px;
+    float: none;
+    margin: 0;
+    line-height: 1;
+  }
+  .pg a, .pg strong, .pg label {
+    float: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: 30px;
+    height: 30px;
+    margin: 0;
+    padding: 0 8px;
+    border: 0;
+    border-radius: var(--r-md);
+    background: none;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+  }
+  .pg a:hover { background: var(--hover); color: var(--ink); }
+  .pg strong { background: var(--active); color: var(--ink); font-weight: 600; }
+  /* Previous and next are the same square button as the numbers, with a chevron. */
+  .pg a.nxt, .pg a.prev {
+    width: 30px;
+    padding: 0;
+    background-image: none;
+    color: var(--ink-2);
+    font-size: 0;
+  }
+  .pg a.nxt::before, .pg a.prev::before {
+    content: "";
+    width: 16px;
+    height: 16px;
+    background: currentColor;
+    mask: var(--ic-back) center / contain no-repeat;
+  }
+  .pg a.nxt::before { transform: scaleX(-1); }
+  .pg label { gap: 4px; padding: 0 4px; color: var(--subtle); cursor: default; }
+  .pg label span { color: var(--subtle); font-size: 13px; white-space: nowrap; }
+  .pg label .px {
+    box-sizing: border-box;
+    width: 44px;
+    min-height: 30px;
+    height: 30px;
+    margin: 0;
+    padding: 0 4px;
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-md);
+    background: none;
+    color: var(--ink);
+    font-size: 13px;
+    text-align: center;
+  }
+
+  /* "Next page" at the end of a list: one bar everywhere. */
+  .pgbtn { margin: 16px 0 0; padding: 0; }
+  .pgbtn a, #autopbn {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: none;
+    box-shadow: none;
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0;
+    line-height: 1;
+    transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+  }
+  .pgbtn a:hover, #autopbn:hover { background: var(--hover); color: var(--ink); }
+
+  /* Quotes look the same in posts, dialogs and the reply page. */
+  .quote {
+    margin: 6px 0 10px;
+    padding: 8px 12px 9px;
+    border: 0;
+    border-left: 2px solid var(--line-2);
+    border-radius: 0 var(--r-md) var(--r-md) 0;
+    background: var(--hover) none;
+    color: var(--muted);
+    font-size: 13.5px;
+    line-height: 1.65;
+    overflow: visible;
+  }
+  .quote blockquote { margin: 0; padding: 0; background: none; }
+  .m_c .quote { box-sizing: border-box; width: auto; }
+
+  /* Collapse toggles and stale chrome */
+  .tg_no, .tg_yes, .bm_h .o { display: none; }
+  .cl::after { display: table; content: ""; clear: both; height: auto; visibility: visible; }
+}

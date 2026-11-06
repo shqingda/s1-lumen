@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="light dark">
+  <title>S1 Lumen</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <img class="mark" src="../icons/128.png" alt="">
+    <h1>S1 Lumen</h1>
+  </header>
+
+  <section>
+    <h2 id="theme-label">主题</h2>
+    <div class="segmented" role="radiogroup" aria-labelledby="theme-label">
+      <label><input type="radio" name="theme" value="auto"><span>跟随系统</span></label>
+      <label><input type="radio" name="theme" value="light"><span>浅色</span></label>
+      <label><input type="radio" name="theme" value="dark"><span>深色</span></label>
+    </div>
+  </section>
+
+  <section>
+    <div class="row">
+      <h2><label for="postSize">帖子字号</label></h2>
+      <output id="postSizeValue" for="postSize"></output>
+    </div>
+    <input id="postSize" type="range" min="14" max="22" step="1">
+  </section>
+
+  <section>
+    <h2 id="width-label">讨论页宽度</h2>
+    <div class="segmented" role="radiogroup" aria-labelledby="width-label">
+      <label><input type="radio" name="width" value="standard"><span>标准</span></label>
+      <label><input type="radio" name="width" value="wide"><span>宽屏</span></label>
+    </div>
+  </section>
+
+  <section class="toggles">
+    <label class="toggle"><span>页面切换淡入</span><input type="checkbox" name="pageFade"><i></i></label>
+    <label class="toggle"><span>相对时间</span><input type="checkbox" name="relativeTime"><i></i></label>
+    <label class="toggle"><span>显示签名档</span><input type="checkbox" name="signature"><i></i></label>
+  </section>
+
+  <script src="popup.js"></script>
+</body>
+</html>

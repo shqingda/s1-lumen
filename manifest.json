@@ -1,0 +1,49 @@
+{
+  "manifest_version": 3,
+  "name": "S1 Lumen",
+  "version": "1.1.0",
+  "description": "Stage1st 论坛的现代化重设计：亮暗主题、侧栏布局、阅读优先的帖子页，切换页面零闪烁。",
+  "homepage_url": "https://github.com/shqingda/s1-lumen",
+  "minimum_chrome_version": "126",
+  "icons": {
+    "16": "icons/16.png",
+    "32": "icons/32.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  },
+  "action": {
+    "default_title": "S1 Lumen",
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/16.png",
+      "32": "icons/32.png"
+    }
+  },
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.stage1st.com/2b/*",
+        "*://*.saraba1st.com/2b/*"
+      ],
+      "exclude_globs": [
+        "*/2b/archiver/*",
+        "*action=printable*",
+        "*mobile=*"
+      ],
+      "css": [
+        "css/tokens.css",
+        "css/remap.css",
+        "css/base.css",
+        "css/shell.css",
+        "css/index.css",
+        "css/forum.css",
+        "css/thread.css",
+        "css/editor.css",
+        "css/generic.css"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ]
+}
