@@ -36,6 +36,12 @@
   --day-amber: #404040;
   --day-amber-soft: rgb(0 0 0 / .06);
 
+  /* Night text on its own: content.js overrides these on <html> to soften it, and day never reads them. */
+  --night-ink: #fafafa;
+  --night-ink-2: #e5e5e5;
+  --night-muted: #a1a1a1;
+  --night-amber: #d4d4d4;
+
   /* The shadcn/ui "neutral" palette, on a soft paper page by day. Hierarchy comes from contrast. */
   --bg:          light-dark(var(--day-bg), #0a0a0a);
   --bg-soft:     light-dark(var(--day-bg-soft), #121212);
@@ -48,9 +54,9 @@
   --active:      light-dark(var(--day-active), rgb(255 255 255 / .1));
 
   /* Text, four tiers. */
-  --ink:         light-dark(var(--day-ink), #fafafa);
-  --ink-2:       light-dark(var(--day-ink-2), #e5e5e5);
-  --muted:       light-dark(var(--day-muted), #a1a1a1);
+  --ink:         light-dark(var(--day-ink), var(--night-ink));
+  --ink-2:       light-dark(var(--day-ink-2), var(--night-ink-2));
+  --muted:       light-dark(var(--day-muted), var(--night-muted));
   --subtle:      light-dark(var(--day-subtle), #858585);
 
   /* Hairlines: border and input. */
@@ -61,12 +67,12 @@
   /* Emphasis is inverted contrast: primary is near-black by day, near-white at night. */
   --accent:      light-dark(var(--day-accent), #e5e5e5);
   --accent-hover: light-dark(var(--day-accent-hover), #d4d4d4);
-  --accent-text: light-dark(var(--day-accent-text), #fafafa);
+  --accent-text: light-dark(var(--day-accent-text), var(--night-ink));
   --accent-text-40: light-dark(var(--day-accent-text-40), rgb(250 250 250 / .4));
   --bg-glass:    light-dark(var(--day-bg-glass), rgb(10 10 10 / .95));
   --accent-soft: light-dark(var(--day-accent-soft), #262626);
   --on-accent:   light-dark(var(--day-on-accent), #171717);
-  --amber:       light-dark(var(--day-amber), #d4d4d4);
+  --amber:       light-dark(var(--day-amber), var(--night-amber));
   --amber-soft:  light-dark(var(--day-amber-soft), #262626);
 
   --shadow-xs:   0 1px 2px rgb(0 0 0 / .05);
@@ -153,7 +159,7 @@
 /*
  * The fade is a plain animation on the new page's content, not a view transition: those
  * snapshot the old page and suspend the new one, which is when clicks went missing.
- * Only trips in and out of a thread and between its pages are transitions.
+ * Only trips in and out of a thread are transitions.
  */
 @media (prefers-reduced-motion: no-preference) {
   :root[data-lumen-fade]:not([data-lumen-morph]) #wp { animation: lumen-page-in 120ms ease-out; }

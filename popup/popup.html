@@ -30,6 +30,26 @@
   </section>
 
   <section>
+    <h2 id="night-label">夜间文字亮度</h2>
+    <div class="segmented" role="radiogroup" aria-labelledby="night-label">
+      <label><input type="radio" name="nightText" value="off"><span>原始</span></label>
+      <label><input type="radio" name="nightText" value="auto"><span>自动</span></label>
+      <label><input type="radio" name="nightText" value="manual"><span>手动</span></label>
+    </div>
+    <div id="nightManual" class="night-manual">
+      <div class="row">
+        <h2><label for="nightWhite">正文亮度</label></h2>
+        <span>
+          <button id="nightReset" class="reset" type="button" title="恢复到自动时的亮度">重置</button>
+          <output id="nightWhiteValue" for="nightWhite"></output>
+        </span>
+      </div>
+      <input id="nightWhite" type="range" min="76" max="98" step="1">
+    </div>
+    <p id="nightHint" class="hint night-hint"></p>
+  </section>
+
+  <section>
     <div class="row">
       <h2><label for="postSize">帖子字号</label></h2>
       <output id="postSizeValue" for="postSize"></output>

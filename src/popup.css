@@ -129,3 +129,16 @@ textarea::placeholder { color: var(--muted); }
 #blockUsers button::before { content: "×"; }
 #blockUsers button:hover { color: var(--ink); }
 .hint { margin: 0; color: var(--muted); font-size: 12px; }
+.night-manual { margin-top: 10px; }
+.night-hint { margin-top: 6px; }
+.reset {
+  margin-right: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.reset:hover { color: var(--ink); }

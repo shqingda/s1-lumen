@@ -13,7 +13,17 @@ html:not(#_):not(#__) {
     #pgt .pgb, #pgt #newspecial, #pgt #newspecialtmp, #newspecial_menu { display: none; }
     #pgt > .pgt { order: 4; flex: none; margin-left: 0; }
     #pgt #post_reply, #pgt .lumen-reply { order: 5; flex: none; }
-    #pgt .pg a:not(.nxt):not(.prev), #pgt .pg strong { display: none; }
+    #pgt .pg a:not(.nxt):not(.prev):not(.lumen-pg-end), #pgt .pg strong { display: none; }
+    #pgt .pg a.lumen-pg-end { width: 30px; padding: 0; color: var(--ink-2); font-size: 0; }
+    #pgt .pg a.lumen-pg-end::before {
+      content: "";
+      width: 16px;
+      height: 16px;
+      background: currentColor;
+      mask: var(--ic-first) center / contain no-repeat;
+    }
+    #pgt .pg a.lumen-pg-end:last-child::before { transform: scaleX(-1); }
+    #pgt .pg a.lumen-pg-off { opacity: .3; pointer-events: none; }
 
     .lumen-crumb {
       order: 1;

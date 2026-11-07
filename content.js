@@ -22,6 +22,8 @@
     theme: 'auto',        // auto | light | dark
     dayPalette: 'lumen',  // 'lumen' | 'classic', the colours of the light theme
     postSize: 16,         // px
+    nightText: 'off',     // off | auto | manual, how bright white text is at night
+    nightWhite: 81,       // manual: the lightness of body text, in percent
     width: 'wide',        // standard | wide, thread pages only
     pageFade: false,
     threadMorph: true,
@@ -54,6 +56,40 @@
 
   let settings = { ...DEFAULTS, ...readMirror() };
 
+  // Astigmatism spreads bright strokes into the dark around them, and the halo is a share of the
+  // text's own light, so dimming white text shrinks it. Only the night text tokens change: no
+  // element is visited and nothing keeps watching the page. Day never reads them, so it needs no check.
+  // Lightness is OKLCH L. Above the knee, L' = K + d / (1 + B·d) with d = L - K, as in Mellow:
+  // the tiers stay in order and greys near the knee barely move.
+  const NIGHT_KNEE = .65;
+  const NIGHT_INK = .985; // #fafafa
+  // APCA Lc 68 on #171717 panels, and about 69 on the #0a0a0a page. Lumen owns those backgrounds,
+  // so this is worked out here once and not measured on every page. popup.js resets to the same value.
+  const NIGHT_AUTO = .81;
+  const NIGHT_TIERS = {
+    '--night-ink': NIGHT_INK,
+    '--night-ink-2': .922,
+    '--night-amber': .87,
+    '--night-muted': .709,
+  };
+
+  const nightGrey = (lightness, white) => {
+    const top = NIGHT_INK - NIGHT_KNEE;
+    const slope = (top / (white - NIGHT_KNEE) - 1) / top;
+    const d = lightness - NIGHT_KNEE;
+    const soft = NIGHT_KNEE + d / (1 + slope * d);
+    const value = Math.round((1.055 * soft ** (3 / 2.4) - .055) * 255);
+    return `rgb(${value} ${value} ${value})`;
+  };
+
+  const applyNightText = (s) => {
+    const white = { auto: NIGHT_AUTO, manual: s.nightWhite / 100 }[s.nightText];
+    for (const [name, lightness] of Object.entries(NIGHT_TIERS)) {
+      if (white) root.style.setProperty(name, nightGrey(lightness, white));
+      else root.style.removeProperty(name);
+    }
+  };
+
   const applySettings = (s) => {
     root.toggleAttribute('data-lumen-fade', s.pageFade);
     if (s.theme === 'auto') delete root.dataset.lumenTheme;
@@ -66,6 +102,7 @@
     if (s.railHidden) root.dataset.lumenRail = 'hidden';
     else delete root.dataset.lumenRail;
     root.style.setProperty('--post-size', `${s.postSize}px`);
+    applyNightText(s);
   };
 
   applySettings(settings);
@@ -129,8 +166,9 @@
   /* ------------------------------------------------------- thread title morph */
 
   // A view transition suspends the new page while it runs, so only the trips in and out of a
-  // thread and between its pages get one. Both sides opt in for that single trip, and switching
-  // boards never pays for it. The thread's title is carried across when it is on both pages.
+  // thread get one. Both sides opt in for that single trip, and switching boards never pays for
+  // it. The thread's title is carried across when it is on both pages. Turning a thread's page
+  // gets none: the rail and toolbar stay where they are, so a fade only reads as a flash.
   const MORPH_KEY = 's1lumen:morph';
   // Transitions between pages arrived in Chrome 126. Before that a trip is a plain fade-in.
   const canMorph = 'CSSViewTransitionRule' in window;
@@ -256,7 +294,7 @@
   const pressTrip = (event) => {
     // A chip that opens a later floor lands below the title, so it has nothing to carry across.
     const within = pageKind === 'thread'
-      ? '.lumen-crumb, .pg a'
+      ? '.lumen-crumb'
       : 'a.xst, .tps a, .lumen-resume:not([href*="goto=findpost"])';
     const link = event.target.closest?.(within);
     if (!link?.protocol.startsWith('http') || !settings.threadMorph || link.target === '_blank') return;
@@ -482,6 +520,13 @@
     return target;
   };
 
+  // Near-white greys read as body text, so they follow it when night text is softened.
+  const fitToNight = (rgb) => {
+    const fitted = fitTo(rgb, NIGHT, INK_LIGHT);
+    const grey = Math.max(...fitted) - Math.min(...fitted) < 24;
+    return grey && Math.min(...fitted) >= 224 ? 'var(--night-ink)' : toCss(fitted);
+  };
+
   const sameColour = (a, b) => a.every((v, i) => Math.abs(v - b[i]) <= 10);
 
   const PAPER = [255, 255, 255];
@@ -534,7 +579,7 @@
         continue;
       }
       node.style.setProperty('--c-light', toCss(fitTo(rgb, PAPER, INK_DARK)));
-      node.style.setProperty('--c-dark', toCss(fitTo(rgb, NIGHT, INK_LIGHT)));
+      node.style.setProperty('--c-dark', fitToNight(rgb));
     }
   };
 
@@ -1667,6 +1712,32 @@
     }
   };
 
+  // Discuz always links the first and last page, as a number the compact pager hides.
+  // Those two links become the buttons, so there are no URLs to build. Discuz leaves out what
+  // does not apply on this page; a greyed stand-in holds its place, so the page number stays put.
+  const showPagerEnds = () => {
+    const pager = $('#pgt .pg');
+    if (!pager || $('.lumen-pg-end', pager)) return;
+    const pageOf = (node) => Number.parseInt(node?.textContent.replace(/\D/g, ''), 10);
+    const current = pageOf($('strong', pager));
+    if (!current) return;
+    const links = $$('a:not(.nxt):not(.prev)', pager);
+    const spare = (name) => el('a', { class: `${name} lumen-pg-off` });
+    const end = (link, title) => {
+      link.classList.add('lumen-pg-end');
+      link.title = title;
+      return link;
+    };
+    pager.prepend(
+      pageOf(links[0]) < current ? end(links[0], '首页') : spare('lumen-pg-end'),
+      $('.prev', pager) ?? spare('prev'),
+    );
+    pager.append(
+      $('.nxt', pager) ?? spare('nxt'),
+      pageOf(links.at(-1)) > current ? end(links.at(-1), '末页') : spare('lumen-pg-end'),
+    );
+  };
+
   const polish = (scope = document) => {
     markRail();
     refreshTimes();
@@ -1675,6 +1746,7 @@
     landTrip();
     if (pageKind === 'thread') {
       buildThreadBar();
+      showPagerEnds();
       markAuthors();
       tidyPostMeta();
       addBlockLinks();

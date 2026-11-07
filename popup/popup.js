@@ -3,6 +3,8 @@ const DEFAULTS = {
   theme: 'auto',
   dayPalette: 'lumen',
   postSize: 16,
+  nightText: 'off',
+  nightWhite: 81,
   width: 'wide',
   pageFade: false,
   threadMorph: true,
@@ -22,8 +24,21 @@ const sizeValue = document.getElementById('postSizeValue');
 const wordsInput = document.getElementById('blockWords');
 const usersList = document.getElementById('blockUsers');
 const paletteRow = document.getElementById('dayPalette');
+const nightManual = document.getElementById('nightManual');
+const nightInput = document.getElementById('nightWhite');
+const nightValue = document.getElementById('nightWhiteValue');
+const nightHint = document.getElementById('nightHint');
+const nightReset = document.getElementById('nightReset');
 
 let settings = { ...DEFAULTS };
+
+const isDay = () => settings.theme === 'light'
+  || (settings.theme === 'auto' && !matchMedia('(prefers-color-scheme: dark)').matches);
+
+const showNightWhite = (value) => {
+  nightValue.textContent = `${value}%`;
+  nightReset.hidden = value === DEFAULTS.nightWhite;
+};
 
 const render = () => {
   for (const input of form.querySelectorAll('input[type="radio"]')) {
@@ -33,6 +48,12 @@ const render = () => {
     input.checked = !!settings[input.name];
   }
   paletteRow.hidden = settings.theme === 'dark';
+  nightManual.hidden = settings.nightText !== 'manual';
+  nightInput.value = settings.nightWhite;
+  showNightWhite(settings.nightWhite);
+  nightHint.textContent = isDay() && settings.nightText !== 'off'
+    ? '日间模式下不生效，切到夜间后才调暗。'
+    : '调暗夜间的白字，减轻散光看到的光晕。';
   sizeInput.value = settings.postSize;
   sizeValue.textContent = `${settings.postSize}px`;
   if (document.activeElement !== wordsInput) wordsInput.value = settings.blockWords.join('\n');
@@ -71,6 +92,26 @@ wordsInput.addEventListener('input', () => {
 
 // Live preview while dragging; open forum tabs follow through storage.onChanged.
 sizeInput.addEventListener('input', () => save({ postSize: Number(sizeInput.value) }));
+
+// Throttled, unlike the font size: a long track fires far more often, and storage.sync allows
+// 120 writes a minute. Every open forum tab also redoes its settings on each one.
+let nightTimer = 0;
+const saveNight = () => {
+  clearTimeout(nightTimer);
+  nightTimer = 0;
+  save({ nightWhite: Number(nightInput.value) });
+};
+nightInput.addEventListener('input', () => {
+  showNightWhite(Number(nightInput.value));
+  nightTimer ||= setTimeout(saveNight, 200);
+});
+nightInput.addEventListener('change', saveNight);
+
+// The default is the same lightness as 自动, so this lands exactly on its look.
+nightReset.addEventListener('click', () => {
+  nightInput.value = DEFAULTS.nightWhite;
+  saveNight();
+});
 
 chrome.storage.sync.get(KEY).then((stored) => {
   settings = { ...DEFAULTS, ...stored[KEY] };

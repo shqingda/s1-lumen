@@ -344,6 +344,8 @@ html:not(#_):not(#__) {
     mask: var(--ic-back) center / contain no-repeat;
   }
   .pg a.nxt::before { transform: scaleX(-1); }
+  /* The forum's own triangles: empty at font-size 0, but their margins still push the chevron aside. */
+  .pg a.nxt::after, .pg a.prev::after { display: none; }
   .pg label { gap: 4px; padding: 0 4px; color: var(--subtle); cursor: default; }
   .pg label span { color: var(--subtle); font-size: 13px; white-space: nowrap; }
   .pg label .px {
