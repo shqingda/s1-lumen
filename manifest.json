@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "S1 Lumen",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Stage1st 论坛的现代化重设计：亮暗主题、侧栏布局、阅读优先的帖子页，切换页面零闪烁。",
   "homepage_url": "https://github.com/shqingda/s1-lumen",
   "minimum_chrome_version": "109",
