@@ -17,26 +17,8 @@
 (() => {
   'use strict';
 
-  const KEY = 's1lumen:v1';
-  const DEFAULTS = {
-    theme: 'auto',        // auto | light | dark
-    dayPalette: 'lumen',  // 'lumen' | 'classic', the colours of the light theme
-    postSize: 16,         // px
-    nightText: 'off',     // off | auto | manual, how bright white text is at night
-    nightWhite: 81,       // manual: the lightness of body text, in percent
-    width: 'wide',        // standard | wide, thread pages only
-    pageFade: false,
-    threadMorph: true,
-    signature: false,
-    relativeTime: true,
-    avatarShape: 'circle', // circle | rounded
-    resume: true,
-    railHidden: false,
-    showSensitive: false, // images in NSFW threads, unless the thread says otherwise
-    appLogin: true,       // a login also fetches the App API token, for hidden posts
-    blockUsers: [],       // { id, name }
-    blockWords: [],
-  };
+  // shared.js runs first and holds the defaults and the storage format, which the popup shares.
+  const { KEY, withDefaults } = S1Lumen;
   // While the gate holds, Chrome shows the old page and drops clicks on it, so it stays short.
   const GATE_TIMEOUT_MS = 600;
 
@@ -54,7 +36,7 @@
     try { localStorage.setItem(KEY, JSON.stringify(value)); } catch { /* private mode */ }
   };
 
-  let settings = { ...DEFAULTS, ...readMirror() };
+  let settings = withDefaults(readMirror());
 
   // Astigmatism spreads bright strokes into the dark around them, and the halo is a share of the
   // text's own light, so dimming white text shrinks it. Only the night text tokens change: no
@@ -107,36 +89,36 @@
 
   applySettings(settings);
 
+  // Only the parts of the page a changed setting reaches are redone.
   const adoptSettings = (next) => {
-    const merged = { ...DEFAULTS, ...next };
-    const changed = JSON.stringify(merged) !== JSON.stringify(settings);
-    const timeChanged = merged.relativeTime !== settings.relativeTime;
+    const merged = withDefaults(next);
+    const before = settings;
+    const differs = (...names) => names.some((name) => JSON.stringify(merged[name]) !== JSON.stringify(before[name]));
     settings = merged;
     writeMirror(merged);
-    if (!changed) return;
+    if (!differs(...Object.keys(merged))) return;
     applySettings(merged);
-    if (timeChanged) refreshTimes();
-    if (!merged.resume) forgetReading();
-    markRows();
-    applyBlocks();
-    applySensitive();
-    const editor = document.getElementById('e_iframe');
-    if (editor) paintEditor(editor);
+    if (differs('relativeTime')) refreshTimes();
+    if (differs('resume')) {
+      if (!merged.resume) forgetReading();
+      markRows();
+    }
+    if (differs('blockUsers', 'blockWords')) applyBlocks();
+    if (differs('showSensitive')) applySensitive();
+    if (differs('theme', 'dayPalette', 'nightText', 'nightWhite')) repaintEditor();
   };
 
   if (hasExtensionApi()) {
-    chrome.storage.sync.get(KEY).then((stored) => {
-      if (stored[KEY]) adoptSettings(stored[KEY]);
-      else chrome.storage.sync.set({ [KEY]: settings });
+    S1Lumen.load().then((stored) => {
+      if (stored) adoptSettings(stored);
+      else S1Lumen.save(settings);
     }).catch(() => {});
-    chrome.storage.onChanged.addListener((changes, area) => {
-      if (area === 'sync' && changes[KEY]?.newValue) adoptSettings(changes[KEY].newValue);
-    });
+    S1Lumen.watch(adoptSettings);
   }
 
   const saveSettings = (patch) => {
     adoptSettings({ ...settings, ...patch });
-    if (hasExtensionApi()) chrome.storage.sync.set({ [KEY]: settings }).catch(() => {});
+    if (hasExtensionApi()) S1Lumen.save(settings).catch(() => {});
   };
 
   /* ------------------------------------------------------------- render gate */
@@ -210,6 +192,11 @@
 
   /* ------------------------------------------------------------- DOM helpers */
 
+  const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // A left click with no modifier, which is what opens a link in this tab.
+  const plainClick = (event) => !(event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey);
+
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
 
@@ -224,6 +211,27 @@
     return node;
   };
 
+  /* ------------------------------------------------------------ page helpers */
+
+  const threadOf = (url) => (url.match(/thread-(\d+)/) || url.match(/[?&]tid=(\d+)/))?.[1];
+  const tid = threadOf(location.href);
+  const postUrl = (thread, pid) => `forum.php?mod=redirect&goto=findpost&ptid=${thread}&pid=${pid}`;
+
+  const POST = '#postlist > div[id^=post_]';
+  const listPosts = () => $$(POST);
+  const postById = (pid) => document.getElementById(`post_${pid}`);
+  const pidOf = (post) => post.id.slice('post_'.length);
+  const floorOf = (post) => {
+    const label = $('[id^=postnum]', post)?.textContent ?? '';
+    return label.includes('楼主') ? 1 : Number.parseInt(label, 10) || 0;
+  };
+  const threadRows = () => $$('tbody[id^="normalthread_"], tbody[id^="stickthread_"]');
+
+  // Only one author's posts, or the thread in reverse: floors there are not a reading position.
+  const filteredView = /[?&](authorid|ordertype)=/.test(location.search);
+  // navigate, reload or back_forward.
+  const arrivedBy = () => performance.getEntriesByType('navigation')[0]?.type;
+
   /* -------------------------------------------------------------------- rail */
 
   const effectiveTheme = () => {
@@ -233,9 +241,7 @@
 
   const setTheme = (theme) => {
     const apply = () => saveSettings({ theme });
-    const animate = document.startViewTransition
-      && !matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (animate) document.startViewTransition(apply);
+    if (document.startViewTransition && !calm()) document.startViewTransition(apply);
     else apply();
   };
 
@@ -251,7 +257,7 @@
 
     // The page reflows once, then glides from its old spot on the compositor.
     // Animating the padding instead would lay out a whole thread on every frame.
-    if (!content || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!content || calm()) return;
     const shift = before - content.getBoundingClientRect().left;
     const easing = getComputedStyle(root).getPropertyValue('--ease').trim() || 'ease';
     for (const part of [document.getElementById('wp'), document.getElementById('ft')]) {
@@ -279,9 +285,20 @@
   const pressBoard = (event) => {
     const link = event.target.closest?.('#nv li > a[href]:not([target])');
     if (!link?.protocol.startsWith('http')) return;
-    if (event.defaultPrevented || event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (event.defaultPrevented || !plainClick(event)) return;
     $$('#nv li.a').forEach((item) => item.classList.remove('a'));
     link.parentElement.classList.add('a');
+  };
+
+  // In the top bar the boards scroll sideways; keep the current one in view.
+  const centreBoard = () => {
+    if (!matchMedia('(max-width: 960px)').matches) return;
+    const nav = document.getElementById('nv');
+    const active = nav?.querySelector('li.a');
+    if (!active) return;
+    const box = nav.getBoundingClientRect();
+    const item = active.getBoundingClientRect();
+    nav.scrollLeft += item.left - box.left - (box.width - item.width) / 2;
   };
 
   // The title on screen right now: the big one, or the toolbar's once that has scrolled away.
@@ -298,7 +315,7 @@
       : 'a.xst, .tps a, .lumen-resume:not([href*="goto=findpost"])';
     const link = event.target.closest?.(within);
     if (!link?.protocol.startsWith('http') || !settings.threadMorph || link.target === '_blank') return;
-    if (event.defaultPrevented || event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (event.defaultPrevented || !plainClick(event)) return;
     const row = link.closest('tbody');
     const title = row ? $('a.xst', row) : shownTitle();
     try { sessionStorage.setItem(MORPH_KEY, row?.id.split('_')[1] ?? tid); } catch { return; }
@@ -483,16 +500,25 @@
     const raw = node.dataset.lumenTime;
     const date = parseForumTime(raw);
     const shown = settings.relativeTime && date ? (relative(date) ?? raw) : raw;
-    if (node.dataset.lumenTimeNode) {
-      const text = [...node.childNodes].find((child) => child.nodeType === 3 && child.textContent.trim());
-      if (text) text.textContent = `${shown} · `;
-    } else {
-      node.textContent = `${node.dataset.lumenPrefix ?? ''}${shown}`;
-    }
-    node.title = raw;
+    // Unchanged text is left alone, so the minute-by-minute refresh costs no layout.
+    const text = node.dataset.lumenTimeNode
+      ? [...node.childNodes].find((child) => child.nodeType === 3 && child.textContent.trim())
+      : node;
+    const label = node.dataset.lumenTimeNode ? `${shown} · ` : `${node.dataset.lumenPrefix ?? ''}${shown}`;
+    if (text && text.textContent !== label) text.textContent = label;
+    if (node.title !== raw) node.title = raw;
   };
 
   const refreshTimes = () => $$(TIME_SELECTORS).forEach(formatTime);
+
+  // "3 分钟前" keeps ageing while the page stays open.
+  const keepTimesFresh = () => {
+    const tick = () => {
+      if (settings.relativeTime && !document.hidden) refreshTimes();
+    };
+    setInterval(tick, 60_000);
+    document.addEventListener('visibilitychange', tick);
+  };
 
   /* ------------------------------------------------------- user-coloured text */
 
@@ -544,49 +570,55 @@
     return m ? [+m[1], +m[2], +m[3]] : null;
   };
 
-  const fixColours = (scope = document) => {
-    // Innermost first: an outer colour fitted to the theme would change what the inner node inherits.
-    for (const node of $$('.t_f font[color], .t_f [style*="color"]', scope).reverse()) {
-      if (node.dataset.lumenColor || node.closest('.quote font[size]')) continue;
-      node.dataset.lumenColor = '1';
-      const fill = node.style.backgroundColor && parseRgb(getComputedStyle(node).backgroundColor);
-      if (fill) {
-        const own = parseRgb(getComputedStyle(node).color);
-        // Text painted in its own fill is a spoiler, whatever the colour.
-        if (own && sameColour(own, fill)) {
-          node.dataset.lumenSpoiler = '1';
-          continue;
-        }
-        if (sameColour(fill, PAPER) || sameColour(fill, SITE_BG)) {
-          // Pasted text often carries the page colour, which would glow at night. Drop it.
-          node.style.backgroundColor = '';
-        } else {
-          // A real highlight keeps its fill in both themes, so its text is chosen against it.
-          if (!node.getAttribute('color') && !node.style.color) {
-            const light = fill[0] * .299 + fill[1] * .587 + fill[2] * .114 > 140;
-            node.style.setProperty('color', light ? '#171717' : '#fafafa', 'important');
-          }
-          continue;
-        }
-      }
-      // `[style*="color"]` also matches background-color; only real text colours count.
-      if (!node.getAttribute('color') && !node.style.color) continue;
-      const rgb = parseRgb(getComputedStyle(node).color);
-      if (!rgb) continue;
-      // Text that disappears on the forum's page is its spoiler idiom. Keep it hidden.
-      if (hiddenOnSite(rgb)) {
-        node.dataset.lumenSpoiler = '1';
-        continue;
-      }
-      node.style.setProperty('--c-light', toCss(fitTo(rgb, PAPER, INK_DARK)));
-      node.style.setProperty('--c-dark', fitToNight(rgb));
+  // What one coloured node needs, worked out from the colours the author gave it.
+  const colourFix = (node, fill, own) => {
+    const textColour = node.getAttribute('color') || node.style.color;
+    // Text painted in its own fill is a spoiler, whatever the colour.
+    if (fill && own && sameColour(own, fill)) return { spoiler: true };
+    // A real highlight keeps its fill in both themes, so its text is chosen against it.
+    if (fill && !sameColour(fill, PAPER) && !sameColour(fill, SITE_BG)) {
+      if (textColour) return {};
+      const light = fill[0] * .299 + fill[1] * .587 + fill[2] * .114 > 140;
+      return { ink: light ? '#171717' : '#fafafa' };
     }
+    // What is left of a fill is the page colour, which pasted text often carries and which
+    // would glow at night. It goes, and the text colour is handled as if it had none.
+    const dropFill = !!fill;
+    // `[style*="color"]` also matches background-color; only real text colours count.
+    if (!textColour || !own) return { dropFill };
+    // Text that disappears on the forum's page is its spoiler idiom. Keep it hidden.
+    if (hiddenOnSite(own)) return { dropFill, spoiler: true };
+    return { dropFill, light: toCss(fitTo(own, PAPER, INK_DARK)), dark: fitToNight(own) };
+  };
+
+  // Every colour is read before anything is written. Mixing the two made Chrome work out the
+  // styles again for each node, inside the render gate, and a colourful thread has hundreds.
+  // Reading first also means each node is judged by the colours the author gave it.
+  const fixColours = (scope = document) => {
+    const nodes = $$('.t_f font[color], .t_f [style*="color"]', scope)
+      .filter((node) => !node.dataset.lumenColor && !node.closest('.quote font[size]'));
+    const fixes = nodes.map((node) => {
+      const style = getComputedStyle(node);
+      const fill = node.style.backgroundColor ? parseRgb(style.backgroundColor) : null;
+      return colourFix(node, fill, parseRgb(style.color));
+    });
+    nodes.forEach((node, at) => {
+      const { spoiler, dropFill, ink, light, dark } = fixes[at];
+      node.dataset.lumenColor = '1';
+      if (spoiler) node.dataset.lumenSpoiler = '1';
+      if (dropFill) node.style.backgroundColor = '';
+      if (ink) node.style.setProperty('color', ink, 'important');
+      if (light) {
+        node.style.setProperty('--c-light', light);
+        node.style.setProperty('--c-dark', dark);
+      }
+    });
   };
 
   /* --------------------------------------------------------------- thread page */
 
   const markAuthors = () => {
-    const posts = $$('#postlist > div[id^=post_]');
+    const posts = listPosts();
     if (!posts.length) return;
 
     const authorOf = (post) => $('.favatar .authi a', post)?.getAttribute('href') ?? null;
@@ -644,37 +676,65 @@
     if (next) next.textContent = next.textContent.replace(/[\s »]/g, '');
   };
 
+  // Discuz copies the avatar into its card 500ms after hover, later than the card opens here.
+  const fillCardAvatar = ({ target }) => {
+    const avatar = target.closest?.('.favatar .avatar');
+    const slot = avatar?.closest('.favatar').querySelector('.bui .m > div');
+    if (slot && !slot.hasChildNodes()) slot.append(...[...avatar.childNodes].map((node) => node.cloneNode(true)));
+  };
+
   /* ---------------------------------------------------------- reading position */
 
   // The floor each thread was left on, as { tid: [floor, pid, time] }. It never leaves
   // this browser, and a list row works out its unread count from the reply column.
   const READ_KEY = 's1lumen:read';
   const READ_LIMIT = 400;
-  const threadOf = (url) => (url.match(/thread-(\d+)/) || url.match(/[?&]tid=(\d+)/))?.[1];
-  const tid = threadOf(location.href);
-  const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const postUrl = (thread, pid) => `forum.php?mod=redirect&goto=findpost&ptid=${thread}&pid=${pid}`;
-  const postById = (pid) => document.getElementById(`post_${pid}`);
-  const pidOf = (post) => post.id.slice('post_'.length);
 
+  // Each address of the forum (www. or not, stage1st or saraba1st) has a localStorage of its
+  // own, which is what a page can read straight away. chrome.storage.local is shared by all of
+  // them, so it is the record, and the copy in each address catches up with it, as the settings do.
   const loadReading = () => {
     try { return JSON.parse(localStorage.getItem(READ_KEY)) ?? {}; } catch { return {}; }
   };
 
-  const forgetReading = () => {
-    try { localStorage.removeItem(READ_KEY); } catch { /* ignore */ }
+  const keepReading = (read, { shared = false } = {}) => {
+    const stale = Object.keys(read).sort((a, b) => read[b][2] - read[a][2]).slice(READ_LIMIT);
+    for (const key of stale) delete read[key];
+    try { localStorage.setItem(READ_KEY, JSON.stringify(read)); } catch { /* ignore */ }
+    if (shared && hasExtensionApi()) chrome.storage.local.set({ [READ_KEY]: read }).catch(() => {});
   };
 
-  const floorOf = (post) => {
-    const label = $('[id^=postnum]', post)?.textContent ?? '';
-    return label.includes('楼主') ? 1 : Number.parseInt(label, 10) || 0;
+  const forgetReading = () => {
+    try { localStorage.removeItem(READ_KEY); } catch { /* ignore */ }
+    if (hasExtensionApi()) chrome.storage.local.remove(READ_KEY).catch(() => {});
   };
+
+  // The newer entry wins for each thread. Settles with whether this address learnt anything.
+  const syncReading = async () => {
+    if (!settings.resume || !hasExtensionApi()) return false;
+    try {
+      const shared = (await chrome.storage.local.get(READ_KEY))[READ_KEY] ?? {};
+      const here = loadReading();
+      const merged = { ...here };
+      for (const [thread, entry] of Object.entries(shared)) {
+        if (!(merged[thread]?.[2] >= entry[2])) merged[thread] = entry;
+      }
+      const behind = (copy) => Object.keys(merged).some((thread) => !(copy[thread]?.[2] >= merged[thread][2]));
+      const learnt = behind(here);
+      const taught = behind(shared);
+      if (learnt || taught) keepReading(merged, { shared: taught });
+      return learnt;
+    } catch {
+      return false;
+    }
+  };
+  const readingSynced = syncReading();
 
   let held = null; // a post jumped to: it stays the place until the reader moves
 
   // The post crossing the line just under where a jump lands, or the last one once it is in view.
   const postAtLine = () => {
-    const posts = $$('#postlist > div[id^=post_]');
+    const posts = listPosts();
     if (posts.at(-1)?.getBoundingClientRect().bottom <= innerHeight) return posts.at(-1);
     const line = (Number.parseFloat(getComputedStyle(root).scrollPaddingTop) || 0) + 24;
     return posts.find((post) => post.getBoundingClientRect().bottom > line);
@@ -689,16 +749,15 @@
     held = null;
   };
 
-  const saveReading = () => {
-    if (!settings.resume || /[?&](authorid|ordertype)=/.test(location.search)) return;
+  // Every pause in scrolling is kept here; the shared record is updated when the page is left.
+  const saveReading = ({ shared = false } = {}) => {
+    if (!settings.resume || filteredView) return;
     const post = currentPost();
     const floor = post && floorOf(post);
     if (!floor) return;
     const read = loadReading();
     read[tid] = [floor, pidOf(post), Date.now()];
-    const stale = Object.keys(read).sort((a, b) => read[b][2] - read[a][2]).slice(READ_LIMIT);
-    for (const key of stale) delete read[key];
-    try { localStorage.setItem(READ_KEY, JSON.stringify(read)); } catch { /* ignore */ }
+    keepReading(read, { shared });
   };
 
   /* The pill: one small floating action at a time, for 接着读 and 返回. */
@@ -743,7 +802,7 @@
   // Reload, Back and a restored tab keep their place without being asked. The browser puts
   // the scroll offset back, but images load in at their own pace, so the floor gets the last word.
   const settleRestored = () => {
-    if (performance.getEntriesByType('navigation')[0]?.type === 'navigate') return;
+    if (arrivedBy() === 'navigate') return;
     const post = postById(loadReading()[tid]?.[1]);
     if (!post) return; // Left from another page of the thread, and the offset is all there is.
     held = post;
@@ -756,10 +815,10 @@
 
   const offerResume = () => {
     if (!settings.resume || location.hash || scrollY > 200) return;
-    if (/[?&](authorid|ordertype)=/.test(location.search)) return;
+    if (filteredView) return;
     // Paging inside the thread, Back and reload are not coming back to it.
     if (threadOf(document.referrer) === tid) return;
-    if (performance.getEntriesByType('navigation')[0]?.type !== 'navigate') return;
+    if (arrivedBy() !== 'navigate') return;
     const saved = loadReading()[tid];
     const here = currentPost();
     if (!saved || !here || saved[0] <= 1 || Math.abs(saved[0] - floorOf(here)) <= 1) return;
@@ -777,21 +836,23 @@
 
   const markRows = () => {
     const read = settings.resume ? loadReading() : {};
-    for (const row of $$('tbody[id^="normalthread_"], tbody[id^="stickthread_"]')) {
-      $('.lumen-resume', row)?.remove();
+    for (const row of threadRows()) {
+      const chip = $('.lumen-resume', row);
       const thread = row.id.split('_')[1];
       const title = $('a.xst', row);
       const replies = Number.parseInt($('td.num a', row)?.textContent, 10);
       const seen = read[thread];
-      if (!seen || !title || Number.isNaN(replies)) continue;
-      const fresh = replies + 1 - seen[0];
-      if (fresh <= 0) continue;
-      title.after(el('a', {
-        class: 'lumen-resume',
-        // Left on the first floor, the top of the thread is the place, title included.
-        href: seen[0] <= 1 ? title.getAttribute('href') : postUrl(thread, seen[1]),
-        title: `后面还有 ${fresh} 楼，从 ${seen[0]} 楼接着读`,
-      }, `+${fresh}`));
+      const fresh = seen && title && !Number.isNaN(replies) ? replies + 1 - seen[0] : 0;
+      if (fresh <= 0) {
+        chip?.remove();
+        continue;
+      }
+      // Left on the first floor, the top of the thread is the place, title included.
+      const href = seen[0] <= 1 ? title.getAttribute('href') : postUrl(thread, seen[1]);
+      // This runs on every change to the list, and a chip that is already right stays as it is.
+      if (chip?.getAttribute('href') === href && chip.textContent === `+${fresh}`) continue;
+      chip?.remove();
+      title.after(el('a', { class: 'lumen-resume', href, title: `后面还有 ${fresh} 楼，从 ${seen[0]} 楼接着读` }, `+${fresh}`));
     }
   };
 
@@ -820,7 +881,7 @@
   };
 
   const followQuote = (event) => {
-    if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (!plainClick(event)) return;
     const link = quoteLink(event);
     if (!link) return;
     const url = new URL(link.href);
@@ -828,7 +889,7 @@
     if (!pid || url.searchParams.get('ptid') !== tid) return;
     event.preventDefault();
 
-    const from = event.target.closest('#postlist > div[id^=post_]');
+    const from = event.target.closest(POST);
     const floor = from ? floorOf(from) : 0;
     const post = postById(pid);
     if (!post) {
@@ -863,20 +924,29 @@
     addEventListener('popstate', settleReturn);
     // A tab closed in the background was saved when it was hidden, or never read at all.
     addEventListener('pagehide', () => {
-      if (!document.hidden) saveReading();
+      if (!document.hidden) saveReading({ shared: true });
       // Left without taking it, so it no longer applies if Back brings this page out of the cache.
       if (pill?.classList.contains('lumen-pill-resume')) {
         pill.remove();
         pill = null;
       }
     });
-    // Quitting the browser does not always get as far as pagehide.
-    addEventListener('scrollend', saveReading);
+    // Quitting the browser does not always get as far as pagehide. scrollend arrived in
+    // Chrome 114; before that, a pause in scroll events stands in for it.
+    if ('onscrollend' in window) {
+      addEventListener('scrollend', () => saveReading());
+    } else {
+      let pause = 0;
+      addEventListener('scroll', () => {
+        clearTimeout(pause);
+        pause = setTimeout(saveReading, 200);
+      }, { passive: true });
+    }
     for (const type of ['wheel', 'touchmove', 'keydown', 'pointerdown']) {
       addEventListener(type, releaseHeld, { passive: true });
     }
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) saveReading();
+      if (document.hidden) saveReading({ shared: true });
     });
 
     const landed = location.hash.match(/^#pid(\d+)/)?.[1];
@@ -894,13 +964,13 @@
       showPill('back', backLabel(jump.floor), () => history.back());
       return;
     }
-    offerResume();
+    // The floor may have been read under another of the forum's addresses.
+    readingSynced.then(offerResume);
   };
 
   /* ---------------------------------------------------------- floor scrubber */
 
   const FLOOR_KEY = 's1lumen:floor';
-  const listPosts = () => $$('#postlist > div[id^=post_]');
 
   // Arriving from the scrubber on another page. Runs inside the render gate, so the top of
   // the page never shows first.
@@ -922,13 +992,13 @@
   const landOnAnchor = () => {
     const pid = location.hash.match(/^#pid(\d+)/)?.[1];
     const target = pid && document.getElementById(`pid${pid}`);
-    if (!target || anchored || performance.getEntriesByType('navigation')[0]?.type !== 'navigate') return;
+    if (!target || anchored || arrivedBy() !== 'navigate') return;
     anchored = true;
     target.scrollIntoView({ behavior: 'instant', block: 'start' });
   };
 
   const buildScrubber = () => {
-    if ($('.lumen-scrub') || /[?&](authorid|ordertype)=/.test(location.search)) return;
+    if ($('.lumen-scrub') || filteredView) return;
     const pages = Math.max(0, ...$$('#pgt .pg a, #pgt .pg strong')
       .map((node) => Number.parseInt(node.textContent.replace(/\D/g, ''), 10))
       .filter(Boolean));
@@ -1079,6 +1149,11 @@
       save.hidden = !item.download;
       if (item.download) save.href = item.download;
       viewer.hidden = false;
+      // The neighbours load while this one is looked at, so stepping through does not wait.
+      for (const step of [1, -1]) {
+        const near = images[(index + step + images.length) % images.length];
+        Object.assign(new Image(), { referrerPolicy: near.referrerPolicy, src: near.url });
+      }
     };
     const backToGrid = () => {
       index = -1;
@@ -1213,16 +1288,21 @@
   const applyBlocks = () => {
     const users = new Map(settings.blockUsers.map(({ id, name }) => [id, name]));
     const words = settings.blockWords.map((word) => word.toLowerCase());
-    const wordIn = (text) => words.find((word) => text.toLowerCase().includes(word));
+    // This runs on every change to the page; with no words, no post's text is read at all.
+    const wordIn = (node) => {
+      if (!words.length || !node) return undefined;
+      const text = node.textContent.toLowerCase();
+      return words.find((word) => text.includes(word));
+    };
 
-    for (const row of $$('tbody[id^="normalthread_"], tbody[id^="stickthread_"]')) {
-      const blocked = users.has(userIdOf($('td.by cite a', row))) || !!wordIn($('a.xst', row)?.textContent ?? '');
+    for (const row of threadRows()) {
+      const blocked = users.has(userIdOf($('td.by cite a', row))) || !!wordIn($('a.xst', row));
       row.toggleAttribute('data-lumen-blocked', blocked);
     }
     for (const post of listPosts()) {
       const author = $('.favatar .authi a', post);
       const id = userIdOf(author);
-      const word = wordIn($('.t_f', post)?.textContent ?? '');
+      const word = !users.has(id) && wordIn($('.t_f', post));
       if (users.has(id)) foldPost(post, `已屏蔽 ${author.textContent.trim()} 的回复`, id);
       else if (word) foldPost(post, `这条回复含屏蔽词「${word}」`);
       else unfoldPost(post);
@@ -1241,7 +1321,7 @@
 
   document.addEventListener('click', ({ target }) => {
     if (!target.closest?.('.lumen-block-user')) return;
-    const author = $('.favatar .authi a', target.closest('#postlist > div[id^=post_]'));
+    const author = $('.favatar .authi a', target.closest(POST));
     blockUser(userIdOf(author), author.textContent.trim());
   });
 
@@ -1308,33 +1388,30 @@
     chart.querySelector('svg, img, i')?.remove();
   };
 
-  /* -------------------------------------------------------------------- search */
-
-  // Discuz copies the avatar into its card 500ms after hover, later than the card opens here.
-  const fillCardAvatar = ({ target }) => {
-    const avatar = target.closest?.('.favatar .avatar');
-    const slot = avatar?.closest('.favatar').querySelector('.bui .m > div');
-    if (slot && !slot.hasChildNodes()) slot.append(...[...avatar.childNodes].map((node) => node.cloneNode(true)));
-  };
+  /* ------------------------------------------------------------------ keyboard */
 
   const bindKeys = () => {
     addEventListener('keydown', (event) => {
+      // Chrome's autofill sends keydown events that have no key.
+      const key = event.key?.toLowerCase();
+      const command = (event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey;
       const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName) || event.target.isContentEditable;
-      // Inside a text field this stays the editor's bold shortcut.
-      if ((event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 'b' && !typing) {
+      // Inside a text field these stay with the field: bold, and whatever ⌘K means there.
+      if (typing) {
+        if (key === 'escape' && event.target.id === 'scbar_txt') event.target.blur();
+        return;
+      }
+      if (command && key === 'b') {
         event.preventDefault();
         toggleRail();
         return;
       }
-      const palette = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k';
-      if (palette || (event.key === '/' && !typing)) {
+      if ((command && key === 'k') || key === '/') {
         const input = $('#scbar_txt');
         if (!input) return;
         event.preventDefault();
         input.focus();
         input.select();
-      } else if (event.key === 'Escape' && event.target.id === 'scbar_txt') {
-        event.target.blur();
       }
     });
   };
@@ -1355,6 +1432,16 @@
       a { color: ${tokens.getPropertyValue('--accent-text')}; }`;
     if (doc.querySelector('link[href*="wysiwyg"]')) frame.dataset.lumenReady = '';
   };
+
+  const repaintEditor = () => {
+    const frame = document.getElementById('e_iframe');
+    if (frame) paintEditor(frame);
+  };
+
+  // The frame's colours are written out, so it does not follow the system by itself.
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (settings.theme === 'auto') repaintEditor();
+  });
 
   /* --------------------------------------------------------------------- polls */
 
@@ -1423,9 +1510,13 @@
   };
 
   const accountLink = () => $('#um .vwmy a');
-  const forgetSid = () => chrome.storage.local.remove(SID_KEY);
+  const forgetSid = async () => {
+    if (hasExtensionApi()) await chrome.storage.local.remove(SID_KEY);
+  };
 
   const savedSid = async () => {
+    // After the extension updates, the page keeps this script but loses its storage.
+    if (!hasExtensionApi()) throw new Error('扩展已更新，请刷新页面');
     const { [SID_KEY]: saved } = await chrome.storage.local.get(SID_KEY);
     return saved && saved.uid === userIdOf(accountLink()) ? saved.sid : null;
   };
@@ -1570,7 +1661,7 @@
   };
 
   const revealPost = async (note, button) => {
-    const post = note.closest('#postlist > div[id^=post_]');
+    const post = note.closest(POST);
     button.disabled = true;
     button.textContent = '读取中…';
     try {
@@ -1672,17 +1763,6 @@
 
   // Hovering a board link fetches that board ahead of the click. Threads are left out:
   // a prefetch would count as a view.
-  // In the top bar the boards scroll sideways; keep the current one in view.
-  const centreBoard = () => {
-    if (!matchMedia('(max-width: 960px)').matches) return;
-    const nav = document.getElementById('nv');
-    const active = nav?.querySelector('li.a');
-    if (!active) return;
-    const box = nav.getBoundingClientRect();
-    const item = active.getBoundingClientRect();
-    nav.scrollLeft += item.left - box.left - (box.width - item.width) / 2;
-  };
-
   const addPrefetch = () => {
     if (!HTMLScriptElement.supports?.('speculationrules')) return;
     const rules = el('script', { type: 'speculationrules' });
@@ -1823,12 +1903,17 @@
       document.addEventListener('pointerover', fillCardAvatar);
       startThread();
     } else {
-      // Coming back to a list, whether by Back or from a thread in another tab.
+      readingSynced.then((learnt) => {
+        if (learnt) markRows();
+      });
+      // Coming back to a list, whether by Back or from a thread in another tab. That tab may
+      // be on another of the forum's addresses.
+      const refreshRows = () => syncReading().then(() => markRows());
       addEventListener('pageshow', ({ persisted }) => {
-        if (persisted) markRows();
+        if (persisted) refreshRows();
       });
       document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) markRows();
+        if (!document.hidden) refreshRows();
       });
     }
 

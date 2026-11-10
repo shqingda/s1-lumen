@@ -1,22 +1,4 @@
-const KEY = 's1lumen:v1';
-const DEFAULTS = {
-  theme: 'auto',
-  dayPalette: 'lumen',
-  postSize: 16,
-  nightText: 'off',
-  nightWhite: 81,
-  width: 'wide',
-  pageFade: false,
-  threadMorph: true,
-  signature: false,
-  relativeTime: true,
-  avatarShape: 'circle',
-  resume: true,
-  showSensitive: false,
-  appLogin: true,
-  blockUsers: [],
-  blockWords: [],
-};
+const { DEFAULTS, withDefaults } = S1Lumen;
 
 const form = document.body;
 const sizeInput = document.getElementById('postSize');
@@ -29,8 +11,9 @@ const nightInput = document.getElementById('nightWhite');
 const nightValue = document.getElementById('nightWhiteValue');
 const nightHint = document.getElementById('nightHint');
 const nightReset = document.getElementById('nightReset');
+const saveError = document.getElementById('saveError');
 
-let settings = { ...DEFAULTS };
+let settings = withDefaults();
 
 const isDay = () => settings.theme === 'light'
   || (settings.theme === 'auto' && !matchMedia('(prefers-color-scheme: dark)').matches);
@@ -39,6 +22,10 @@ const showNightWhite = (value) => {
   nightValue.textContent = `${value}%`;
   nightReset.hidden = value === DEFAULTS.nightWhite;
 };
+
+// A change from a forum tab can arrive while a control is in use. That control keeps what
+// the reader is doing with it, and takes the stored value once they let go.
+const busy = (input) => document.activeElement === input;
 
 const render = () => {
   for (const input of form.querySelectorAll('input[type="radio"]')) {
@@ -49,14 +36,16 @@ const render = () => {
   }
   paletteRow.hidden = settings.theme === 'dark';
   nightManual.hidden = settings.nightText !== 'manual';
-  nightInput.value = settings.nightWhite;
-  showNightWhite(settings.nightWhite);
+  if (!busy(nightInput)) {
+    nightInput.value = settings.nightWhite;
+    showNightWhite(settings.nightWhite);
+  }
   nightHint.textContent = isDay() && settings.nightText !== 'off'
     ? '日间模式下不生效，切到夜间后才调暗。'
     : '调暗夜间的白字，减轻散光看到的光晕。';
-  sizeInput.value = settings.postSize;
+  if (!busy(sizeInput)) sizeInput.value = settings.postSize;
   sizeValue.textContent = `${settings.postSize}px`;
-  if (document.activeElement !== wordsInput) wordsInput.value = settings.blockWords.join('\n');
+  if (!busy(wordsInput)) wordsInput.value = settings.blockWords.join('\n');
   usersList.replaceChildren(...settings.blockUsers.map(({ id, name }) => {
     const remove = document.createElement('button');
     remove.type = 'button';
@@ -69,10 +58,26 @@ const render = () => {
   usersList.hidden = !settings.blockUsers.length;
 };
 
+// While a write of this popup is under way, the changes Chrome reports are its own, possibly
+// an older one, and taking them would undo what was just set.
+let writing = 0;
+
 const save = (patch) => {
   settings = { ...settings, ...patch };
   render();
-  chrome.storage.sync.set({ [KEY]: settings });
+  writing += 1;
+  S1Lumen.save(settings).finally(() => {
+    writing -= 1;
+  }).then(() => {
+    saveError.hidden = true;
+    // Catch up on anything a forum tab changed in the meantime.
+    if (!writing) S1Lumen.load().then(adopt).catch(() => {});
+  }, () => {
+    // What was typed stays on screen, so it can be trimmed and saved again.
+    // Most likely the block lists have outgrown what sync storage holds in all.
+    saveError.textContent = '没能保存：屏蔽列表可能太长了，删掉一些再试。';
+    saveError.hidden = false;
+  });
 };
 
 form.addEventListener('change', ({ target }) => {
@@ -81,13 +86,22 @@ form.addEventListener('change', ({ target }) => {
   if (target.name === 'appLogin' && !target.checked) chrome.storage.local.remove('s1lumen:sid');
 });
 
-// Saved as you type, because a popup closes without any warning.
+// Saved as you type, because a popup closes without any warning. Leaving the field, or
+// closing the popup, saves straight away instead of waiting out the pause.
 let wordsTimer = 0;
+const saveWords = () => {
+  clearTimeout(wordsTimer);
+  wordsTimer = 0;
+  const words = [...new Set(wordsInput.value.split('\n').map((line) => line.trim()).filter(Boolean))];
+  if (words.join('\n') !== settings.blockWords.join('\n')) save({ blockWords: words });
+};
 wordsInput.addEventListener('input', () => {
   clearTimeout(wordsTimer);
-  wordsTimer = setTimeout(() => {
-    save({ blockWords: [...new Set(wordsInput.value.split('\n').map((line) => line.trim()).filter(Boolean))] });
-  }, 250);
+  wordsTimer = setTimeout(saveWords, 250);
+});
+wordsInput.addEventListener('blur', saveWords);
+addEventListener('pagehide', () => {
+  if (wordsTimer) saveWords();
 });
 
 // Live preview while dragging; open forum tabs follow through storage.onChanged.
@@ -113,8 +127,14 @@ nightReset.addEventListener('click', () => {
   saveNight();
 });
 
-chrome.storage.sync.get(KEY).then((stored) => {
-  settings = { ...DEFAULTS, ...stored[KEY] };
+const adopt = (stored) => {
+  settings = withDefaults(stored);
   if (settings.width !== 'standard') settings.width = 'wide';
   render();
+};
+
+S1Lumen.load().then(adopt);
+// A forum tab may change something while this is open, such as the rail or a block.
+S1Lumen.watch((stored) => {
+  if (!writing) adopt(stored);
 });

@@ -7,5 +7,5 @@ const out = `dist/s1-lumen-${version}.zip`;
 
 mkdirSync('dist', { recursive: true });
 rmSync(out, { force: true });
-execFileSync('zip', ['-rqX', out, 'manifest.json', 'content.js', 'css', 'icons', 'popup', '-x', '*.DS_Store']);
+execFileSync('zip', ['-rqX', out, 'manifest.json', 'shared.js', 'content.js', 'css', 'icons', 'popup', '-x', '*.DS_Store']);
 console.log(out);
