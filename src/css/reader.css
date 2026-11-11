@@ -298,17 +298,6 @@ html:not(#_):not(#__) {
   .pti .authi .lumen-block-user { cursor: pointer; }
 
   /* Hidden posts */
-  .lumen-app-consent {
-    display: flex;
-    gap: 8px;
-    margin: 4px 0 14px;
-    color: var(--ink-2);
-    font: 13px / 1.6 var(--font-ui);
-    cursor: pointer;
-
-    input { flex: none; align-self: flex-start; margin: 4px 0 0; }
-    small { display: block; color: var(--muted); font-size: 12px; }
-  }
   .lumen-reveal {
     flex: none;
     height: 26px;

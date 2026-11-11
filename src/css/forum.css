@@ -475,6 +475,25 @@ html:not(#_):not(#__) {
       mask: var(--ic-pin) center / contain no-repeat;
     }
 
+    /* 隐藏置顶 and 显示置顶 share one place in the header, and only the one that applies shows.
+       Discuz shows 显示置顶 with an inline style once something is hidden; while stickies are on
+       the page, 隐藏置顶 stands there instead. */
+    #clearstickthread .pipe { display: none; }
+    #clearstickthread a {
+      display: inline-flex;
+      align-items: center;
+      height: 26px;
+      padding: 0 9px;
+      border-radius: var(--r-sm);
+      color: var(--muted);
+      font-size: 12.5px;
+      font-weight: 500;
+    }
+    #clearstickthread a:hover { background: var(--hover); color: var(--ink); }
+    /* A link without an address gets no pointer of its own. */
+    #clearstickthread a, #threadlist .tf > .lumen-hide-sticky { cursor: pointer; }
+    #threadlist .tf.lumen-has-sticky #clearstickthread { display: none !important; }
+
     /* Hairline between sticky and normal threads. */
     #threadlisttableid > tbody#separatorline { margin: 0; }
     #threadlisttableid > tbody#separatorline > tr {
@@ -486,9 +505,11 @@ html:not(#_):not(#__) {
       background: var(--line);
     }
     #threadlisttableid > tbody#separatorline > tr > * { display: none; }
+    /* Nothing above it once the stickies are hidden. */
+    #threadlisttableid > tbody#separatorline:first-child { display: none; }
+    #threadlisttableid > tbody#separatorline:first-child + tbody > tr { border-top: 0; }
 
-    #forumnewshow { display: block; margin: 0 -10px; }
-    #forumnew a, #forumnewshow a {
+    #forumnew a {
       display: block;
       padding: 7px 10px;
       border-radius: var(--r-md);
@@ -496,6 +517,44 @@ html:not(#_):not(#__) {
       color: var(--accent-text);
       font-size: 13px;
       text-align: center;
+    }
+    /* "有新回复的主题" arrives as one more row, a single cell across all columns. It reads as a
+       row of the list: full width, row height, no fill until hovered like any other row. */
+    /* A tinted band, so it stands apart from the threads. The row after it draws the line between
+       them, as rows do; where a <script> of Discuz's sits in between, that row is given it here. */
+    #threadlisttableid > tbody#forumnewshow { background: none; }
+    #threadlisttableid > tbody#forumnewshow > tr {
+      display: block;
+      padding: 0;
+      border-top: 0;
+      background: var(--hover);
+    }
+    #threadlisttableid > tbody#forumnewshow + script + tbody > tr { border-top: 1px solid var(--line); }
+    #threadlisttableid > tbody#forumnewshow > tr:hover { background: var(--active); }
+    #threadlisttableid > tbody#forumnewshow td { display: block; }
+    #threadlisttableid > tbody#forumnewshow a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 40px;
+      margin: 0;
+      padding: 0 16px;
+      border: 0;
+      border-radius: 0;
+      background: none;
+      color: var(--ink-2);
+      font-size: 13px;
+      font-weight: 500;
+      text-indent: 0; /* the forum's own, room for an icon it no longer shows */
+    }
+    #threadlisttableid > tbody#forumnewshow a::before {
+      content: "";
+      flex: none;
+      width: 14px;
+      height: 14px;
+      background: currentColor;
+      mask: var(--ic-refresh) center / contain no-repeat;
     }
 
     /* Author, count, last post */

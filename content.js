@@ -1351,8 +1351,56 @@
     images[0].before(toggle);
   };
 
+  // Discuz keeps hidden stickies by thread id, in this site's localStorage, and leaves them out of
+  // every list. Hiding writes the same list, so a thread pinned later still shows up, and Discuz's
+  // own 显示置顶 brings them back. The two links take turns in one place in the header.
+  const STICKY_KEY = 'Discuz_sticktids';
+  const stickyRows = () => $$('#threadlisttableid > tbody[id^="stickthread_"]');
+
+  const hideStickies = () => {
+    let saved = [];
+    try { saved = JSON.parse(localStorage.getItem(STICKY_KEY)) ?? []; } catch { /* Discuz's own format */ }
+    const ids = new Set((Array.isArray(saved) ? saved : []).map(String));
+    for (const row of stickyRows()) {
+      ids.add(row.id.split('_')[1]);
+      row.remove();
+    }
+    try { localStorage.setItem(STICKY_KEY, `[${[...ids].join(',')}]`); } catch { /* ignore */ }
+    const restore = $('#clearstickthread');
+    if (restore) restore.style.display = '';
+    offerStickyToggle();
+  };
+
+  const offerStickyToggle = () => {
+    const table = $('#threadlisttableid');
+    const tabs = $('#threadlist .tf');
+    const restore = $('#clearstickthread', tabs ?? document);
+    if (!table || !tabs || !restore) return;
+    // With every sticky hidden, Discuz drops this row while the page loads, and its check for new
+    // threads then fails on the missing row: 有新回复的主题 never comes. An empty one stands in.
+    if (!$('#separatorline', table)) {
+      table.prepend(el('tbody', { id: 'separatorline' }, el('tr', { class: 'ts' }, el('td'))));
+    }
+    const any = stickyRows().length > 0;
+    tabs.classList.toggle('lumen-has-sticky', any);
+    const hide = $('.lumen-hide-sticky', tabs);
+    if (!any) hide?.remove();
+    else if (!hide) {
+      const link = el('a', { class: 'lumen-hide-sticky', role: 'button', tabIndex: 0 }, '隐藏置顶');
+      link.addEventListener('click', hideStickies);
+      link.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          hideStickies();
+        }
+      });
+      restore.before(link);
+    }
+  };
+
   const tidyIndex = () => {
     foldBoardRules();
+    offerStickyToggle();
     for (const count of $$('.fl_g dt em, .fl_tb h2 em')) count.textContent = count.textContent.replace(/[()\s]/g, '');
 
     // " - [阅读权限 <b>60</b>]" is three loose pieces; one small tag reads better.
@@ -1694,24 +1742,11 @@
   let loginFields = null;
   let loginFieldsTimer = 0;
 
-  // The second use of the password is stated where it is typed, and only a form stating it is read.
-  const offerAppConsent = () => {
-    if (!appApiAllowed) return;
-    for (const form of $$('form[name="login"]')) {
-      if ($('.lumen-app-consent', form)) continue;
-      const box = el('input', { type: 'checkbox', checked: settings.appLogin });
-      box.addEventListener('change', () => saveSettings({ appLogin: box.checked }));
-      const consent = el('label', { class: 'lumen-app-consent' }, box,
-        el('span', {}, '同时获取隐藏内容凭证', el('small', {}, '登录成功后用这组账号密码向论坛 App 接口换一个凭证，用来查看被屏蔽的楼层。密码不保存。')));
-      const submit = $('[name="loginsubmit"]', form);
-      if (submit) (submit.closest('.rfm') ?? submit).before(consent);
-    }
-  };
-
+  // On unless turned off in the popup.
   const holdLoginFields = (form) => {
     clearTimeout(loginFieldsTimer);
     loginFields = null;
-    if (!$('.lumen-app-consent input', form)?.checked) return;
+    if (!appApiAllowed || !settings.appLogin) return;
     const data = new FormData(form);
     const by = data.get('loginfield') ?? data.get('fastloginfield') ?? 'username';
     const username = data.get('username');
@@ -1845,7 +1880,6 @@
       tidyIndex();
       tidyMessage();
       markRows();
-      offerAppConsent();
     }
   };
 
@@ -1949,10 +1983,7 @@
     watchPosts();
     const dialogs = $('#append_parent');
     if (dialogs) {
-      new MutationObserver(() => {
-        tidySubject();
-        offerAppConsent();
-      }).observe(dialogs, { childList: true, subtree: true });
+      new MutationObserver(tidySubject).observe(dialogs, { childList: true, subtree: true });
     }
     tidySubject();
   });
