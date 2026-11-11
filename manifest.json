@@ -23,8 +23,7 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*.stage1st.com/2b/*",
-        "*://*.saraba1st.com/2b/*"
+        "*://*.stage1st.com/2b/*"
       ],
       "exclude_globs": [
         "*/2b/archiver/*",

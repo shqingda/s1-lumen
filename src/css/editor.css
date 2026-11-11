@@ -71,7 +71,8 @@ html:not(#_):not(#__) {
     width: 100%;
     min-height: 120px;
     margin: 0;
-    padding: 12px 14px;
+    /* The site has .tedt .pt { padding: 0 !important }, which put the text against the frame. */
+    padding: 12px 14px !important;
     border: 0;
     border-radius: 0;
     background: none;
@@ -83,7 +84,7 @@ html:not(#_):not(#__) {
     outline: 0;
   }
   .tedt .pt:focus, .tedt textarea:focus { border: 0; box-shadow: none; }
-  .tedt .area .pt.hm { min-height: 0; padding: 26px; color: var(--muted); font-size: 13.5px; text-align: center; }
+  .tedt .area .pt.hm { min-height: 0; padding: 26px !important; color: var(--muted); font-size: 13.5px; text-align: center; }
 
   /* Quick reply toolbar: the same line icons as the rail, in place of the old sprite. */
   .fpd { display: flex; align-items: center; flex-wrap: wrap; gap: 2px; margin: 0; }

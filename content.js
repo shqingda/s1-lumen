@@ -211,6 +211,14 @@
     return node;
   };
 
+  // Keys pressed in a dialog stay in it. The forum turns the page on ←/→ from document.onkeyup,
+  // which would leave the page underneath a picture being stepped through.
+  const openDialog = (dialog) => {
+    for (const type of ['keydown', 'keyup']) dialog.addEventListener(type, (event) => event.stopPropagation());
+    document.body.append(dialog);
+    dialog.showModal();
+  };
+
   /* ------------------------------------------------------------ page helpers */
 
   const threadOf = (url) => (url.match(/thread-(\d+)/) || url.match(/[?&]tid=(\d+)/))?.[1];
@@ -690,45 +698,17 @@
   const READ_KEY = 's1lumen:read';
   const READ_LIMIT = 400;
 
-  // Each address of the forum (www. or not, stage1st or saraba1st) has a localStorage of its
-  // own, which is what a page can read straight away. chrome.storage.local is shared by all of
-  // them, so it is the record, and the copy in each address catches up with it, as the settings do.
   const loadReading = () => {
     try { return JSON.parse(localStorage.getItem(READ_KEY)) ?? {}; } catch { return {}; }
   };
 
-  const keepReading = (read, { shared = false } = {}) => {
-    const stale = Object.keys(read).sort((a, b) => read[b][2] - read[a][2]).slice(READ_LIMIT);
-    for (const key of stale) delete read[key];
-    try { localStorage.setItem(READ_KEY, JSON.stringify(read)); } catch { /* ignore */ }
-    if (shared && hasExtensionApi()) chrome.storage.local.set({ [READ_KEY]: read }).catch(() => {});
-  };
-
   const forgetReading = () => {
     try { localStorage.removeItem(READ_KEY); } catch { /* ignore */ }
-    if (hasExtensionApi()) chrome.storage.local.remove(READ_KEY).catch(() => {});
   };
 
-  // The newer entry wins for each thread. Settles with whether this address learnt anything.
-  const syncReading = async () => {
-    if (!settings.resume || !hasExtensionApi()) return false;
-    try {
-      const shared = (await chrome.storage.local.get(READ_KEY))[READ_KEY] ?? {};
-      const here = loadReading();
-      const merged = { ...here };
-      for (const [thread, entry] of Object.entries(shared)) {
-        if (!(merged[thread]?.[2] >= entry[2])) merged[thread] = entry;
-      }
-      const behind = (copy) => Object.keys(merged).some((thread) => !(copy[thread]?.[2] >= merged[thread][2]));
-      const learnt = behind(here);
-      const taught = behind(shared);
-      if (learnt || taught) keepReading(merged, { shared: taught });
-      return learnt;
-    } catch {
-      return false;
-    }
-  };
-  const readingSynced = syncReading();
+  // 26bc87d kept a copy in chrome.storage.local, shared between addresses. Nothing reads it now.
+  // TODO: drop this line in the release after next.
+  if (hasExtensionApi()) chrome.storage.local.remove(READ_KEY).catch(() => {});
 
   let held = null; // a post jumped to: it stays the place until the reader moves
 
@@ -749,15 +729,16 @@
     held = null;
   };
 
-  // Every pause in scrolling is kept here; the shared record is updated when the page is left.
-  const saveReading = ({ shared = false } = {}) => {
+  const saveReading = () => {
     if (!settings.resume || filteredView) return;
     const post = currentPost();
     const floor = post && floorOf(post);
     if (!floor) return;
     const read = loadReading();
     read[tid] = [floor, pidOf(post), Date.now()];
-    keepReading(read, { shared });
+    const stale = Object.keys(read).sort((a, b) => read[b][2] - read[a][2]).slice(READ_LIMIT);
+    for (const key of stale) delete read[key];
+    try { localStorage.setItem(READ_KEY, JSON.stringify(read)); } catch { /* ignore */ }
   };
 
   /* The pill: one small floating action at a time, for 接着读 and 返回. */
@@ -924,7 +905,7 @@
     addEventListener('popstate', settleReturn);
     // A tab closed in the background was saved when it was hidden, or never read at all.
     addEventListener('pagehide', () => {
-      if (!document.hidden) saveReading({ shared: true });
+      if (!document.hidden) saveReading();
       // Left without taking it, so it no longer applies if Back brings this page out of the cache.
       if (pill?.classList.contains('lumen-pill-resume')) {
         pill.remove();
@@ -946,7 +927,7 @@
       addEventListener(type, releaseHeld, { passive: true });
     }
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) saveReading({ shared: true });
+      if (document.hidden) saveReading();
     });
 
     const landed = location.hash.match(/^#pid(\d+)/)?.[1];
@@ -964,8 +945,7 @@
       showPill('back', backLabel(jump.floor), () => history.back());
       return;
     }
-    // The floor may have been read under another of the forum's addresses.
-    readingSynced.then(offerResume);
+    offerResume();
   };
 
   /* ---------------------------------------------------------- floor scrubber */
@@ -1198,8 +1178,7 @@
       if (key === 'ArrowRight') show(index + 1);
     });
     dialog.addEventListener('close', () => dialog.remove());
-    document.body.append(dialog);
-    dialog.showModal();
+    openDialog(dialog);
   };
 
   const offerMedia = () => {
@@ -1488,7 +1467,7 @@
 
   // The content script also matches http:// and any subdomain. Credentials go nowhere but here.
   const appApiAllowed = location.protocol === 'https:'
-    && /^(www\.)?(stage1st|saraba1st)\.com$/.test(location.hostname);
+    && /^(www\.)?stage1st\.com$/.test(location.hostname);
 
   // No cookies: the web session stays out of it, and nothing here can be triggered from elsewhere.
   const appPost = async (path, fields, sid) => {
@@ -1569,8 +1548,7 @@
       dialog.remove();
       resolve(sid);
     });
-    document.body.append(dialog);
-    dialog.showModal();
+    openDialog(dialog);
   });
 
   // Hidden posts tend to come several to a page, and one reply covers them all.
@@ -1903,17 +1881,12 @@
       document.addEventListener('pointerover', fillCardAvatar);
       startThread();
     } else {
-      readingSynced.then((learnt) => {
-        if (learnt) markRows();
-      });
-      // Coming back to a list, whether by Back or from a thread in another tab. That tab may
-      // be on another of the forum's addresses.
-      const refreshRows = () => syncReading().then(() => markRows());
+      // Coming back to a list, whether by Back or from a thread in another tab.
       addEventListener('pageshow', ({ persisted }) => {
-        if (persisted) refreshRows();
+        if (persisted) markRows();
       });
       document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) refreshRows();
+        if (!document.hidden) markRows();
       });
     }
 
