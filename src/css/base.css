@@ -383,6 +383,9 @@ html:not(#_):not(#__) {
     line-height: 1;
     transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
   }
+  /* Discuz sets an inline display:block on #autopbn after each load, which drops the flex
+     centring. A line box the height of the bar keeps the label centred either way. */
+  #autopbn { line-height: 38px; text-align: center; }
   .pgbtn a:hover, #autopbn:hover { background: var(--hover); color: var(--ink); }
 
   /* Quotes look the same in posts, dialogs and the reply page. */
