@@ -336,10 +336,13 @@ html:not(#_):not(#__) {
     color: var(--ink-2);
     font-size: 0;
   }
+  /* Centred by its margins as well: the darkroom's "更多" gets an inline display:block after each load. */
   .pg a.nxt::before, .pg a.prev::before {
     content: "";
+    display: block;
     width: 16px;
     height: 16px;
+    margin: 7px auto;
     background: currentColor;
     mask: var(--ic-back) center / contain no-repeat;
   }

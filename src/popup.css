@@ -131,6 +131,7 @@ textarea::placeholder { color: var(--muted); }
 .hint { margin: 0; color: var(--muted); font-size: 12px; }
 .night-manual { margin-top: 10px; }
 .night-hint { margin-top: 6px; }
+#listsSyncing { margin-top: 6px; }
 .save-error { margin-top: 6px; color: light-dark(#b91c1c, #f87171); }
 .reset {
   margin-right: 6px;

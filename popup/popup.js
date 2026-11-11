@@ -1,4 +1,4 @@
-const { DEFAULTS, withDefaults } = S1Lumen;
+const { DEFAULTS, withDefaults, withoutLists, hasLists } = S1Lumen;
 
 const form = document.body;
 const sizeInput = document.getElementById('postSize');
@@ -12,8 +12,12 @@ const nightValue = document.getElementById('nightWhiteValue');
 const nightHint = document.getElementById('nightHint');
 const nightReset = document.getElementById('nightReset');
 const saveError = document.getElementById('saveError');
+const listsSyncing = document.getElementById('listsSyncing');
 
 let settings = withDefaults();
+// Whether the stored block lists have all arrived from sync. Until they have, they are not
+// shown or edited here, and a save leaves them as they are.
+let listsKnown = true;
 
 const isDay = () => settings.theme === 'light'
   || (settings.theme === 'auto' && !matchMedia('(prefers-color-scheme: dark)').matches);
@@ -45,6 +49,8 @@ const render = () => {
     : '调暗夜间的白字，减轻散光看到的光晕。';
   if (!busy(sizeInput)) sizeInput.value = settings.postSize;
   sizeValue.textContent = `${settings.postSize}px`;
+  listsSyncing.hidden = listsKnown;
+  wordsInput.disabled = !listsKnown;
   if (!busy(wordsInput)) wordsInput.value = settings.blockWords.join('\n');
   usersList.replaceChildren(...settings.blockUsers.map(({ id, name }) => {
     const remove = document.createElement('button');
@@ -55,7 +61,7 @@ const render = () => {
     item.append(name, remove);
     return item;
   }));
-  usersList.hidden = !settings.blockUsers.length;
+  usersList.hidden = !listsKnown || !settings.blockUsers.length;
 };
 
 // While a write of this popup is under way, the changes Chrome reports are its own, possibly
@@ -66,7 +72,7 @@ const save = (patch) => {
   settings = { ...settings, ...patch };
   render();
   writing += 1;
-  S1Lumen.save(settings).finally(() => {
+  S1Lumen.save(listsKnown ? settings : withoutLists(settings)).finally(() => {
     writing -= 1;
   }).then(() => {
     saveError.hidden = true;
@@ -128,6 +134,7 @@ nightReset.addEventListener('click', () => {
 });
 
 const adopt = (stored) => {
+  listsKnown = hasLists(stored);
   settings = withDefaults(stored);
   if (settings.width !== 'standard') settings.width = 'wide';
   render();

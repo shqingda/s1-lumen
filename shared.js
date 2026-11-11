@@ -38,6 +38,13 @@ globalThis.S1Lumen = (() => {
 
   const withDefaults = (value) => ({ ...DEFAULTS, ...value });
 
+  const withoutLists = (settings) => {
+    const rest = { ...settings };
+    for (const name of LISTS) delete rest[name];
+    return rest;
+  };
+  const hasLists = (settings) => LISTS.every((name) => Array.isArray(settings[name]));
+
   const cost = (char) => (char.charCodeAt(0) < 0x80 ? JSON.stringify(char).length - 2 : 6);
 
   // By code point, so a part never ends between the two halves of an emoji.
@@ -72,6 +79,9 @@ globalThis.S1Lumen = (() => {
   };
 
   // Items written before the lists moved out still carry them, and no parts.
+  // Sync brings the items of one write over one by one, so on another device the settings item
+  // can arrive before its parts, or after them. The lists are then left out, not read as empty:
+  // an empty list written back from here would clear them on every device.
   const unpack = (items) => {
     const main = items[KEY];
     if (!main) return null;
@@ -79,7 +89,9 @@ globalThis.S1Lumen = (() => {
     if (parts) {
       try {
         Object.assign(settings, JSON.parse(Array.from({ length: parts }, (_, at) => items[`${PART}${at}`] ?? '').join('')));
-      } catch { /* a part is missing: keep the rest */ }
+      } catch {
+        return withoutLists(withDefaults(settings));
+      }
     }
     return withDefaults(settings);
   };
@@ -88,15 +100,23 @@ globalThis.S1Lumen = (() => {
 
   // One at a time: a cleanup that ran after a newer, longer write would delete its parts.
   let queue = Promise.resolve();
-  const write = async (items) => {
+  const write = async (settings) => {
+    // Lists still on their way are not this device's to write. The small values go out under
+    // the part count already stored, and the parts are left for sync to finish.
+    if (!hasLists(settings)) {
+      const { [KEY]: stored } = await chrome.storage.sync.get(KEY);
+      await chrome.storage.sync.set({ [KEY]: { ...withoutLists(settings), parts: stored?.parts ?? 0 } });
+      return;
+    }
+    const items = pack(settings);
     await chrome.storage.sync.set(items);
     const stale = Object.keys(await chrome.storage.sync.get(null))
       .filter((key) => key.startsWith(PART) && !(key in items));
     if (stale.length) await chrome.storage.sync.remove(stale);
   };
+  // Settings without the lists leave the stored lists as they are.
   const save = (settings) => {
-    const items = pack(settings);
-    const done = queue.then(() => write(items));
+    const done = queue.then(() => write(settings));
     queue = done.catch(() => {});
     return done;
   };
@@ -110,5 +130,5 @@ globalThis.S1Lumen = (() => {
     });
   };
 
-  return Object.freeze({ KEY, DEFAULTS, withDefaults, load, save, watch, pack, unpack });
+  return Object.freeze({ KEY, DEFAULTS, withDefaults, withoutLists, hasLists, load, save, watch, pack, unpack });
 })();

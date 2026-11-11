@@ -108,17 +108,27 @@
     if (differs('theme', 'dayPalette', 'nightText', 'nightWhite')) repaintEditor();
   };
 
+  // Whether the stored block lists have all arrived. Until they have, the page keeps the lists
+  // it already knows, and a save leaves the stored ones alone.
+  let listsKnown = true;
+  const adoptStored = (stored) => {
+    listsKnown = S1Lumen.hasLists(stored);
+    adoptSettings({ ...settings, ...stored });
+  };
+
   if (hasExtensionApi()) {
     S1Lumen.load().then((stored) => {
-      if (stored) adoptSettings(stored);
+      if (stored) adoptStored(stored);
       else S1Lumen.save(settings);
     }).catch(() => {});
-    S1Lumen.watch(adoptSettings);
+    S1Lumen.watch(adoptStored);
   }
 
   const saveSettings = (patch) => {
     adoptSettings({ ...settings, ...patch });
-    if (hasExtensionApi()) S1Lumen.save(settings).catch(() => {});
+    // A block added here starts from the lists this page knows, the best there is to go on.
+    if ('blockUsers' in patch || 'blockWords' in patch) listsKnown = true;
+    if (hasExtensionApi()) S1Lumen.save(listsKnown ? settings : S1Lumen.withoutLists(settings)).catch(() => {});
   };
 
   /* ------------------------------------------------------------- render gate */
@@ -1796,6 +1806,23 @@
     );
   };
 
+  // A quick reply lands in #postlistreply as <div><table id="pid…">, one level below the posts
+  // the page came with and without their post_ id. It moves up beside them, under that id, so
+  // everything that reads posts finds it. Discuz has renamed its #post_new by then; the next
+  // reply goes into the fresh #post_new it leaves behind, which stays where it is.
+  const adoptNewPosts = () => {
+    const reply = document.getElementById('postlistreply');
+    if (!reply) return;
+    // Discuz renames it with id = '', which leaves an empty id behind.
+    for (const table of $$(':scope > div:is(:not([id]), [id=""]) > table[id^="pid"]', reply)) {
+      const box = table.parentElement;
+      const id = `post_${table.id.slice('pid'.length)}`;
+      if (document.getElementById(id)) continue;
+      box.id = id;
+      reply.before(box);
+    }
+  };
+
   const polish = (scope = document) => {
     markRail();
     refreshTimes();
@@ -1803,6 +1830,7 @@
     applyBlocks();
     landTrip();
     if (pageKind === 'thread') {
+      adoptNewPosts();
       buildThreadBar();
       showPagerEnds();
       markAuthors();
@@ -1875,6 +1903,7 @@
     if (!contentDone) addPrefetch();
     polish();
     bindKeys();
+    keepTimesFresh();
 
     centreBoard();
     if (pageKind === 'thread') {
@@ -1890,19 +1919,34 @@
       });
     }
 
-    // "下一页" appends posts and threads in place, and quick reply adds new posts.
+    // "下一页" appends threads in place, and quick reply adds new posts.
     let queued = false;
+    const watched = new WeakSet();
+    // "补充内容" reloads a post's insides in place, which undoes the tidying. Each post is
+    // watched on its own, so changes deeper down, such as an opened user card, cost nothing.
+    const watchPosts = () => {
+      for (const post of listPosts()) {
+        if (watched.has(post)) continue;
+        watched.add(post);
+        dynamic.observe(post, { childList: true });
+      }
+    };
     const dynamic = new MutationObserver(() => {
       if (queued) return;
       queued = true;
       requestAnimationFrame(() => {
         queued = false;
         polish();
+        watchPosts();
       });
     });
     for (const target of [$('#threadlisttableid'), $('#postlist')]) {
       if (target) dynamic.observe(target, { childList: true });
     }
+    // A reply is filled in while its box is still #post_new, and only counts once Discuz renames it.
+    const replies = $('#postlistreply');
+    if (replies) dynamic.observe(replies, { childList: true, subtree: true, attributes: true, attributeFilter: ['id'] });
+    watchPosts();
     const dialogs = $('#append_parent');
     if (dialogs) {
       new MutationObserver(() => {
