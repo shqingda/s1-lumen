@@ -271,6 +271,7 @@
     const before = content?.getBoundingClientRect().left;
     root.dataset.lumenRailMoving = '';
     saveSettings({ railHidden: !settings.railHidden });
+    placePrompt();
     setTimeout(() => delete root.dataset.lumenRailMoving, 240);
 
     // The page reflows once, then glides from its old spot on the compositor.
@@ -353,9 +354,103 @@
 
   const navSection = (label, items) => el('div', { class: 'lumen-section' },
     el('div', { class: 'lumen-label' }, label),
-    el('ul', {}, ...items.map(({ href, text, icon, active, badge }) => el('li', { class: active ? 'a' : '' },
-      el('a', { href, 'data-icon': icon }, text,
+    el('ul', {}, ...items.map(({ href, text, icon, active, badge, node }) => el('li', { class: active ? 'a' : '' },
+      node ?? el('a', { href, 'data-icon': icon }, text,
         ...(badge ? [el('span', { class: 'lumen-badge' }, badge === true ? '' : badge)] : []))))));
+
+  // Discuz opens #myprompt_menu from #myprompt, which used to sit in the hidden account bar,
+  // so the menu was measured at the page origin and covered the top of the rail. The real link
+  // is the rail row; this puts the menu to its right, and flips inward when that would leave the screen.
+  const PROMPT_GAP = 8;
+  let promptOpen = false;
+  // Style writes notify the observer that called us. Ignore that echo, not a later scroll.
+  let promptPlacing = false;
+
+  const revealPromptRow = (anchor) => {
+    const nav = document.getElementById('nv');
+    if (!nav) return;
+    const navBox = nav.getBoundingClientRect();
+    const row = anchor.getBoundingClientRect();
+    if (row.height === 0) return;
+    if (row.top < navBox.top) nav.scrollTop -= navBox.top - row.top;
+    else if (row.bottom > navBox.bottom) nav.scrollTop += row.bottom - navBox.bottom;
+  };
+
+  const placePrompt = () => {
+    const menu = document.getElementById('myprompt_menu');
+    const anchor = document.getElementById('myprompt');
+    if (!menu || !anchor) return;
+    if (menu.style.display === 'none') {
+      promptOpen = false;
+      return;
+    }
+    if (!anchor.closest('#nv')) return;
+
+    if (!promptOpen) {
+      promptOpen = true;
+      revealPromptRow(anchor);
+    }
+    if (promptPlacing) return;
+    promptPlacing = true;
+
+    const edge = PROMPT_GAP;
+    if (menu.parentElement !== document.body) document.body.append(menu);
+    menu.style.position = 'fixed';
+    menu.style.margin = '0';
+    menu.style.right = 'auto';
+    menu.style.bottom = 'auto';
+
+    const width = menu.offsetWidth;
+    const height = menu.offsetHeight;
+    const row = anchor.getBoundingClientRect();
+    let left;
+    let top;
+    if (row.height === 0) {
+      // The narrow top bar hides this row. Keep the menu off the logo.
+      const bar = parseFloat(getComputedStyle(root).getPropertyValue('--bar-h')) || 0;
+      left = innerWidth - width - edge;
+      top = bar + edge;
+    } else {
+      const railRight = document.getElementById('hd')?.getBoundingClientRect().right ?? row.right;
+      const origin = railRight > edge ? railRight : row.right;
+      left = origin + edge;
+      top = row.top;
+      if (left + width > innerWidth - edge) left = row.left - edge - width;
+      if (top + height > innerHeight - edge) top = innerHeight - edge - height;
+    }
+    left = Math.max(edge, Math.min(left, Math.max(edge, innerWidth - width - edge)));
+    top = Math.max(edge, top);
+
+    menu.style.left = `${Math.round(left)}px`;
+    menu.style.top = `${Math.round(top)}px`;
+    // The observer runs before this microtask, so it sees the flag and does not write again.
+    queueMicrotask(() => { promptPlacing = false; });
+  };
+
+  const watchPrompt = () => {
+    const bind = (menu) => {
+      if (menu.dataset.lumenPrompt) return;
+      menu.dataset.lumenPrompt = '1';
+      new MutationObserver(placePrompt).observe(menu, {
+        attributes: true,
+        attributeFilter: ['style'],
+        childList: true,
+      });
+      placePrompt();
+    };
+    const menu = document.getElementById('myprompt_menu');
+    if (menu) {
+      bind(menu);
+      return;
+    }
+    const wait = new MutationObserver(() => {
+      const found = document.getElementById('myprompt_menu');
+      if (!found) return;
+      wait.disconnect();
+      bind(found);
+    });
+    wait.observe(root, { childList: true, subtree: true });
+  };
 
   const buildRail = () => {
     const nav = $('#nv');
@@ -385,14 +480,31 @@
     }));
 
     // Messages and notices live with the other destinations, with their unread count.
+    // 提醒 keeps Discuz's own link: its id and hover handler are what open the menu.
     const unread = (link) => link?.textContent.match(/\d+/)?.[0] ?? link?.classList.contains('new');
-    for (const [selector, text, icon] of [['#pm_ntc', '消息', 'mail'], ['#myprompt', '提醒', 'bell']]) {
-      const link = $(`#um ${selector}`);
-      if (!link) continue;
+    const link = $('#um #pm_ntc');
+    if (link) {
       const href = link.getAttribute('href');
-      mine.push({ href, text, icon, active: here.includes(href), badge: unread(link) });
+      mine.push({ href, text: '消息', icon: 'mail', active: here.includes(href), badge: unread(link) });
+    }
+    const prompt = $('#um #myprompt');
+    if (prompt) {
+      const href = prompt.getAttribute('href');
+      const badge = unread(prompt);
+      prompt.className = '';
+      prompt.removeAttribute('style');
+      prompt.dataset.icon = 'bell';
+      prompt.textContent = '提醒';
+      if (badge) prompt.append(el('span', { class: 'lumen-badge' }, badge === true ? '' : badge));
+      mine.push({ node: prompt, active: !!href && here.includes(href) });
     }
     if (mine.length) nav.append(navSection('我的', mine));
+    nav.addEventListener('scroll', placePrompt, { passive: true });
+    addEventListener('resize', placePrompt);
+    document.getElementById('hd')?.addEventListener('transitionend', (event) => {
+      if (event.propertyName === 'transform') placePrompt();
+    });
+    placePrompt();
 
     const railToggle = el('button', { type: 'button', class: 'lumen-rail-toggle', title: '折叠或展开侧边栏（⌘B）', 'aria-label': '折叠或展开侧边栏' });
     railToggle.addEventListener('click', toggleRail);
@@ -1922,6 +2034,8 @@
     }
   });
   counterWatcher.observe(root, { childList: true, subtree: true });
+
+  watchPrompt();
 
   // Both landmarks are parsed before the render gate opens, so this observer
   // finishes its work inside the hold and nothing moves after the first paint.

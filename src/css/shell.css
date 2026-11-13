@@ -298,6 +298,8 @@ html:not(#_):not(#__) {
 
   #nv a[data-icon="mail"] { --ic: var(--ic-mail); }
   #nv a[data-icon="bell"] { --ic: var(--ic-bell); }
+  /* The moved 提醒 link still carries Discuz's menu class if a script puts it back. */
+  #nv a.showmenu::after { display: none; }
   .lumen-badge {
     box-sizing: border-box;
     min-width: 18px;
