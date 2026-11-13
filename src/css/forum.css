@@ -88,7 +88,6 @@ html:not(#_):not(#__) {
     }
     .bm.bml .bm_c > div:first-child:not([id]) { display: none; }
     .bm.bml .bm_c .ptn { padding: 0 !important; }
-    .bm.bml .bm_c br + br { display: none; }
     /* Board notices are hand-written HTML with their own beige fills and colours. */
     .bm.bml .bm_c * { background: none !important; color: inherit !important; }
     .bm.bml .bm_c table { width: auto; }
@@ -630,7 +629,7 @@ html:not(#_):not(#__) {
     /* Bleeds to the full width of the content pane, wherever the column sits. */
     --bleed: calc((100vw - var(--rail) - 100%) / 2);
     margin-inline: calc(var(--bleed) * -1);
-    padding: 9px var(--bleed);
+    padding: 12px var(--bleed);
     border: 0;
     border-bottom: 1px solid transparent;
     background: var(--bg-glass);

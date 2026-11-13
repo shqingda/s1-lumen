@@ -6,7 +6,7 @@
 
 html:not(#_):not(#__) {
   .pg_viewthread {
-    #wp #ct { max-width: var(--read-w); padding-top: 6px; }
+    #wp #ct { max-width: var(--read-w); padding-top: 0; }
     #pt { display: none; }
 
     /* Toolbar: back to the board, the title once it scrolls away, compact paging. */
@@ -468,7 +468,8 @@ html:not(#_):not(#__) {
       line-height: 1.5;
       text-align: left;
     }
-    .pstatus + br, .pstatus + br + br { display: none; }
+    /* Discuz inserts this break after the edit notice; the notice already has its own gap. */
+    .pstatus + br { display: none; }
 
     /* Quotes */
     .quote {

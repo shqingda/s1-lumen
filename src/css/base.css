@@ -29,8 +29,9 @@ html:not(#_):not(#__) {
 
   .t_f::selection, .t_f ::selection { background: var(--accent-soft); color: var(--ink); }
 
-  /* Discuz moves focus by script when menus open; no focus ring should ever follow. */
-  :focus, :focus-visible { outline: 0 !important; }
+  /* Keep pointer focus quiet while preserving the keyboard's position indicator. */
+  :focus { outline: 0; }
+  :focus-visible { outline: 2px solid var(--ring) !important; outline-offset: 2px; }
   a, button { -webkit-tap-highlight-color: transparent; }
 
   a { color: inherit; text-decoration: none; }
@@ -56,6 +57,7 @@ html:not(#_):not(#__) {
 
   /* Buttons. Primary is an inverted monochrome pill. */
   .pn {
+    box-sizing: border-box;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -114,6 +116,29 @@ html:not(#_):not(#__) {
     background-color: var(--surface);
     color: var(--ink) !important;
   }
+  .ftid a, .ftid a:hover, .ftid a:focus {
+    position: relative;
+    box-sizing: border-box;
+    height: 32px;
+    padding: 0 28px 0 10px;
+    background: var(--surface);
+    font-size: 13.5px;
+    line-height: 30px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .ftid a::after {
+    content: "";
+    position: absolute;
+    right: 8px;
+    top: calc(50% - 6px);
+    width: 12px;
+    height: 12px;
+    background: var(--muted);
+    mask: var(--ic-back) center / contain no-repeat;
+    rotate: -90deg;
+  }
 
   /* Popups and menus */
   .p_pop, .p_pof, .sllt, .sltm {
@@ -124,6 +149,9 @@ html:not(#_):not(#__) {
     color: var(--ink);
   }
   .p_pop { padding: 4px; min-width: 96px; }
+  .sltm { box-sizing: border-box; padding: 4px; font-size: 13.5px; }
+  .sltm ul { margin: 0; padding: 0; max-height: 280px; overflow-y: auto; }
+  .sltm li + li { margin-top: 2px; }
   .p_pop a, .sltm li {
     display: block;
     height: auto;
@@ -139,6 +167,37 @@ html:not(#_):not(#__) {
     color: var(--ink);
   }
   .p_opt, .tip, .tip_c, .tip_horn { color: var(--ink); }
+
+  /* The site's date picker is HTML, including separate month and year menus. */
+  #calendar, #calendar_year, #calendar_month {
+    box-sizing: border-box;
+    padding: 6px;
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-pop);
+    color: var(--ink);
+    font-size: 13px;
+  }
+  /* Discuz positions the picker 20px below the field; fields are now 32px tall. */
+  #calendar { margin-top: 16px; }
+  #calendar td { padding: 0; height: 32px; text-align: center; font-weight: 400; }
+  #calendar a, #calendar_year a, #calendar_month a { color: var(--ink-2); }
+  #calendar_week td { height: 34px; line-height: 34px; border-bottom: 1px solid var(--line); }
+  #calendar_week a { font-weight: 600; }
+  #calendar_header td { height: 28px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+  #calendar td[id^="d"] a { display: block; margin: 2px; border-radius: var(--r-sm); line-height: 28px; }
+  #calendar td[id^="d"] a:hover, #calendar_year a:hover, #calendar_month a:hover { background: var(--hover); }
+  #calendar .calendar_expire a { color: var(--muted); font-weight: 400; }
+  #calendar .calendar_today a { color: var(--accent-text); font-weight: 600; box-shadow: inset 0 0 0 1px var(--line-2); }
+  #calendar .calendar_checked a, #calendar_year .calendar_checked, #calendar_month .calendar_checked {
+    background: var(--accent); color: var(--on-accent); font-weight: 600; border-radius: var(--r-sm);
+  }
+  #calendar_year, #calendar_month { max-width: calc(100vw - 32px); overflow: auto; }
+  #calendar_year .col { margin: 0; padding: 4px; border: 0; background: none; }
+  #calendar_year a, #calendar_month a { display: inline-block; padding: 3px 6px; border-radius: var(--r-sm); }
+  #calendar_year .calendar_today, #calendar_month .calendar_today { color: var(--accent-text); }
+  #hourminute td { padding: 6px 2px 0; border-top: 1px solid var(--line); }
 
   /* Floating windows: the old nine-cell frame table collapses to one rounded block,
      so nothing inside can show square corners past the radius. */

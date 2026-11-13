@@ -1805,6 +1805,26 @@
     for (const link of $$('.alert_btnleft a')) link.textContent = link.textContent.replace(/^\[\s*|\s*\]$/g, '');
   };
 
+  // Date filters use layout tables, with the submit button stranded on a separate row.
+  const tidyFilterForms = () => {
+    for (const table of $$('.exfm > table:has(input[name="starttime"]):has(input[name="endtime"])')) {
+      const rows = [...table.rows];
+      if (!rows.every((row) => row.cells.length % 2 === 0 && [...row.cells].every((cell, i) => cell.tagName === (i % 2 ? 'TD' : 'TH')))) continue;
+      const fields = [];
+      for (const row of rows) {
+        for (let i = 0; i < row.cells.length; i += 2) {
+          const label = row.cells[i];
+          const field = el('fieldset', { class: 'lumen-filter-field' });
+          if (label.textContent.trim()) field.append(el('legend', {}, ...label.childNodes));
+          field.append(el('div', {}, ...row.cells[i + 1].childNodes));
+          fields.push(field);
+        }
+      }
+      table.parentElement.classList.add('lumen-filters');
+      table.replaceWith(...fields);
+    }
+  };
+
   // Same treatment for "RE: 标题 [修改]", which arrives with the reply dialog.
   const tidySubject = () => {
     const line = document.getElementById('subjecthide');
@@ -1879,6 +1899,7 @@
     } else {
       tidyIndex();
       tidyMessage();
+      tidyFilterForms();
       markRows();
     }
   };
